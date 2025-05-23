@@ -2,8 +2,10 @@
 
 import { SessionProvider } from 'next-auth/react';
 
-// import { ThemeProvider } from '@mui/material/styles';
-// import CssBaseline from '@mui/material/CssBaseline';
+import { ThemeProvider } from '@mui/material/styles';
+import CssBaseline from '@mui/material/CssBaseline';
+import theme from '@/theme';
+
 
 // import { useState, useEffect } from 'react';
 
@@ -15,11 +17,11 @@ const Providers = ({
 
   return (
       <SessionProvider>
-        { /* <ThemeProvider theme={theme(mode)}>
+        <ThemeProvider theme={theme('light')}>
           <CssBaseline />
-          <Navbar mode={mode} setMode={setMode} />
-        </ThemeProvider> */}
+          {/* <Navbar mode={mode} setMode={setMode} /> */}
           {children}
+        </ThemeProvider>
       </SessionProvider>
   );
 };

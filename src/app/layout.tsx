@@ -1,21 +1,11 @@
-import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
-import "./globals.css";
-import Providers from "@/components/providers";
-
-const geistSans = Geist({
-  variable: "--font-geist-sans",
-  subsets: ["latin"],
-});
-
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
-});
+import type { Metadata } from 'next';
+import './globals.css';
+import Providers from '@/components/providers';
+import { Stack } from '@mui/material';
 
 export const metadata: Metadata = {
-  title: "Shop Sphere",
-  description: "Store for everyone",
+  title: 'Shop Sphere',
+  description: 'Store for everyone',
 };
 
 export default function RootLayout({
@@ -24,10 +14,16 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
+    <html lang='en'>
       <Providers>
-        <body className={`${geistSans.variable} ${geistMono.variable}`}>
-          {children}
+        <body>
+          <Stack
+            bgcolor={'background.default'}
+            color={'text.primary'}
+            flex={1}
+          >
+            {children}
+          </Stack>
         </body>
       </Providers>
     </html>

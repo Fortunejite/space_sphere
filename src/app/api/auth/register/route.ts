@@ -1,3 +1,4 @@
+import { signIn } from '@/auth';
 import { errorHandler } from '@/lib/errorHandler';
 import dbConnect from '@/lib/mongodb';
 import { createUserSchema } from '@/lib/schema/auth';
@@ -20,6 +21,8 @@ export const POST = errorHandler(async (request: Request) => {
 
   const user = new User(credentials);
   await user.save();
+
+  await signIn('credentials', {...credentials, redirect: false})
 
   return NextResponse.json({ message: 'Signup successful' }, { status: 201 });
 });
