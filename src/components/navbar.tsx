@@ -243,11 +243,21 @@ const Navbar = () => {
           </Stack>
         ) : (
           <Stack direction={'row'} gap={2}>
-            <Button size='small' variant='contained'>
+            <Button
+              size='small'
+              variant='contained'
+              LinkComponent={Link}
+              href='/login'
+            >
               Login
             </Button>
             <Box display={{ xs: 'none', sm: 'block' }}>
-              <Button size='small' variant='outlined'>
+              <Button
+                size='small'
+                variant='outlined'
+                LinkComponent={Link}
+                href='/register'
+              >
                 Sign up
               </Button>
             </Box>
