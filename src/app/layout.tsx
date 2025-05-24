@@ -17,11 +17,7 @@ export default function RootLayout({
     <html lang='en'>
       <Providers>
         <body>
-          <Stack
-            bgcolor={'background.default'}
-            color={'text.primary'}
-            flex={1}
-          >
+          <Stack bgcolor={'background.default'} color={'text.primary'} flex={1}>
             {children}
           </Stack>
         </body>
