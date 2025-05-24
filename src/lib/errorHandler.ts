@@ -62,9 +62,9 @@ export const errorHandler =
     }
   };
 
-export const clientErrorHandler = (err: unknown) => {
+export const clientErrorHandler = (err: unknown): string => {
   if (axios.isAxiosError(err)) {
-    return err.response?.data.message;
+    return err.response?.data.message || err.message || 'Request failed';
   }
-  return (err as Error).message;
+  return err instanceof Error ? err.message : 'Unknown error';
 };

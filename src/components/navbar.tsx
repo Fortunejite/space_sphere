@@ -117,6 +117,8 @@ const DrawerComponent = ({ open, setOpen }: DrawerProps) => {
       setNestedTitle(item.name);
     } else {
       setOpen(false);
+      setNestedItems(null);
+      setNestedTitle('');
       router.push(item.url);
     }
   };
@@ -126,7 +128,11 @@ const DrawerComponent = ({ open, setOpen }: DrawerProps) => {
       anchor='left'
       open={open}
       onOpen={() => setOpen(true)}
-      onClose={() => setOpen(false)}
+      onClose={() => {
+        setOpen(false);
+        setNestedItems(null);
+        setNestedTitle('');
+      }}
     >
       <Box
         width={250}
@@ -231,7 +237,7 @@ const Navbar = () => {
             </IconButton>
             <Box display={{ xs: 'none', sm: 'block' }}>
               <Avatar
-                sx={{ width: 30, height: 30, cursor: 'pointer' }}
+                sx={{ width: 24, height: 24, cursor: 'pointer' }}
                 alt='User avatar'
               />
             </Box>
