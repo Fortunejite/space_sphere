@@ -118,16 +118,16 @@ const LoginPage = () => {
         <Button
           type='submit'
           variant='contained'
-          disabled={loading}
+          loading={loading}
           fullWidth
           sx={{ mt: 2 }}
         >
-          {loading ? 'Logging in...' : 'Login'}
+          Login
         </Button>
 
         <Typography variant='body2' align='center' mt={2}>
           Don&apos;t have an account?{' '}
-          <Link href='/signup' style={{ textDecoration: 'underline' }}>
+          <Link href='/register' style={{ textDecoration: 'underline' }}>
             signup!
           </Link>
         </Typography>

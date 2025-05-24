@@ -158,11 +158,11 @@ const RegisterPage = () => {
         <Button
           type='submit'
           variant='contained'
-          disabled={loading}
+          loading={loading}
           fullWidth
           sx={{ mt: 2 }}
         >
-          {loading ? 'Creating account...' : 'Create Account'}
+          Create Account
         </Button>
 
         <Typography variant='body2' align='center' mt={2}>

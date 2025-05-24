@@ -1,3 +1,4 @@
+import axios from 'axios';
 import mongoose from 'mongoose';
 import { NextResponse } from 'next/server';
 import { ZodError } from 'zod';
@@ -60,3 +61,10 @@ export const errorHandler =
       );
     }
   };
+
+export const clientErrorHandler = (err: unknown) => {
+  if (axios.isAxiosError(err)) {
+    return err.response?.data.message;
+  }
+  return (err as Error).message;
+};
