@@ -14,6 +14,10 @@ const categorySchema = new Schema(
       default: null,
       index: true,
     },
+    slug: {
+      type: String,
+      required: [true, 'Slug is required'],
+    },
   },
   {
     timestamps: true,
@@ -28,27 +32,10 @@ categorySchema.virtual('subcategories', {
   foreignField: 'parent',
 });
 
-// categorySchema.pre('save', async function (next) {
-//   if (!this.parent) {
-//     return next();
-//   }
-
-//   try {
-//     const parentDoc = await this.constructor
-//       .findById(this.parent)
-//       .select('parent')
-//       .lean();
-//     if (!parentDoc) {
-//       return next(new Error('Parent category does not exist'));
-//     }
-//     if (parentDoc.parent) {
-//       return next(new Error('Cannot attach a subcategory'));
-//     }
-//     next();
-//   } catch (err) {
-//     next(err as undefined);
-//   }
-// });
+categorySchema.pre('save', async function (next) {
+  this.slug = this.name.toLowerCase().split(' ').join('-');
+  next();
+});
 
 type inferredFields = InferSchemaType<typeof categorySchema>;
 export type ICategory = {
