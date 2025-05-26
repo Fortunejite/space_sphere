@@ -8,6 +8,7 @@ import { IProduct } from '@/models/Product.model';
 import GridView from './gridView';
 import ListView from './listView';
 import GridViewSkeleton from './gridViewSkeleton';
+import ListViewSkeleton from './listViewSkeleton';
 
 interface Props {
   query: Record<string, string>;
@@ -28,6 +29,7 @@ const ProductsView = ({ query, limit, style }: Props) => {
   }, [query]);
 
   const fetchProducts = useCallback(async () => {
+    if (isLast) return;
     setLoading(true);
     try {
       const params = new URLSearchParams();
@@ -40,13 +42,13 @@ const ProductsView = ({ query, limit, style }: Props) => {
       const { data: products } = await axios.get('/api/products', { params });
       if (products.length < limit) setIsLast(true);
       setProducts((prev) => [...prev, ...products]);
-      setCurrentPage((prev) => prev++);
+      setCurrentPage((prev) => prev + 1);
     } catch (e) {
       console.error(clientErrorHandler(e));
     } finally {
       setLoading(false);
     }
-  }, [query, currentPage, limit]);
+  }, [query, currentPage, limit, isLast]);
 
   useEffect(() => {
     fetchProducts();
@@ -58,6 +60,8 @@ const ProductsView = ({ query, limit, style }: Props) => {
     ) : (
       <GridView products={products} />
     )
+  ) : loading ? (
+    <ListViewSkeleton limit={limit} />
   ) : (
     <ListView products={products} />
   );

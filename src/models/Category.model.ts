@@ -1,4 +1,5 @@
 import { InferSchemaType, Schema, model, models } from 'mongoose';
+import slugify from 'slugify';
 
 const categorySchema = new Schema(
   {
@@ -17,6 +18,8 @@ const categorySchema = new Schema(
     slug: {
       type: String,
       required: [true, 'Slug is required'],
+      unique: [true, 'Slug already exists'],
+      index: true
     },
   },
   {
@@ -32,8 +35,9 @@ categorySchema.virtual('subcategories', {
   foreignField: 'parent',
 });
 
-categorySchema.pre('save', async function (next) {
-  this.slug = this.name.toLowerCase().split(' ').join('-');
+categorySchema.pre('validate', async function (next) {
+  if (this.isModified('name') || !this.slug)
+    this.slug = slugify(this.name, { lower: true, strict: true });
   next();
 });
 

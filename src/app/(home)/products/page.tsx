@@ -67,7 +67,7 @@ const Products = () => {
   const router = useRouter();
 
   const [searchQuery, setSearchQuery] = useState('');
-  const [viewStyle, setViewStyle] = useState<'grid' | 'list'>('list');
+  const [viewStyle, setViewStyle] = useState<'grid' | 'list'>('grid');
   const [activeSort, setActiveSort] = useState(sortTypes[0]);
   const [query, setQuery] = useState<Record<string, string>>({
     sort: activeSort.label,
@@ -78,6 +78,7 @@ const Products = () => {
   );
 
   const changeSort = (sortType: (typeof sortTypes)[0]) => {
+    if (sortType.label === activeSort.label) return
     setActiveSort(sortType);
     setQuery((prev) => ({ ...prev, sort: sortType.label }));
   };

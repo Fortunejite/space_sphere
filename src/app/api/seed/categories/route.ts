@@ -13,7 +13,7 @@ export const GET = errorHandler(async () => {
   const rootData = [
     { name: 'Electronics', slug: 'electronics' },
     { name: 'Books', slug: 'books' },
-    { name: 'Clothing', slug: 'clothings' },
+    { name: 'Clothings', slug: 'clothings' },
   ];
   const roots = await Category.insertMany(rootData);
   console.log(`✅  Inserted ${roots.length} root categories`);

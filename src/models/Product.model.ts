@@ -23,7 +23,7 @@ const productSchema = new Schema(
 
     // core product info
     name: { type: String, required: true, minlength: 3 },
-    slug: { type: String, required: true, index: true }, // unique per shop
+    slug: { type: String, required: true},
     description: {
       type: String,
     },
@@ -88,6 +88,11 @@ const productSchema = new Schema(
 
 // compound index to enforce unique slug per shop
 productSchema.index({ shopId: 1, slug: 1 }, { unique: true });
+
+productSchema.path('saleEnd').validate(function (value: Date) {
+  if (!value || !this.saleStart) return true
+  return this.saleStart < value;
+}, '`saleEnd` must be after `saleStart`')
 
 export type InferredProduct = InferSchemaType<typeof productSchema>;
 export type IProduct = {
