@@ -9,7 +9,8 @@ export const GET = errorHandler(async () => {
 
   const categories = await Category.find({ parent: null })
     .sort({ name: 1 })
-    .populate('subcategories');
+    .populate('subcategories')
+    .lean({ virtuals: true });
 
   return NextResponse.json(categories);
 });

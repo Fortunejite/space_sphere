@@ -1,69 +1,103 @@
 import { InferSchemaType, Schema, model, models } from 'mongoose';
 
+const variantSchema = new Schema(
+  {
+    attributes: Schema.Types.Mixed, // e.g. { size: 'M', color: 'red' }
+    price: { type: Number, required: true },
+    currency: { type: String, default: 'USD' },
+    stock: { type: Number, default: 0 },
+    discount: { type: Number, default: 0 },
+    isDefault: { type: Boolean, default: false },
+  },
+  { _id: false },
+);
+
 const productSchema = new Schema(
   {
     shopId: {
       type: Schema.Types.ObjectId,
       ref: 'Shop',
       required: true,
+      index: true, // for tenant isolation queries
     },
-    name: {
+
+    // core product info
+    name: { type: String, required: true, minlength: 3 },
+    slug: { type: String, required: true},
+    description: {
       type: String,
-      required: true,
-      minlength: [3, 'Name must be at least 3 characters long'],
     },
-    description: { type: String },
-    stock: {
-      type: Number,
-      required: true,
-      default: 0,
+
+    // categorization
+    categories: [{ type: Schema.Types.ObjectId, ref: 'Category' }],
+    tags: [String],
+
+    // variants & pricing
+    variants: [variantSchema],
+    price: { type: Number, required: true }, // fallback if no variants
+    currency: { type: String, default: 'USD' }, // fallback currency
+
+    // inventory
+    stock: { type: Number, default: 0 }, // fallback if no variants
+
+    // shipping & tax
+    weight: Number, // in grams (or unit)
+    dimensions: {
+      length: Number,
+      width: Number,
+      height: Number,
     },
-    price: {
-      type: Number,
-      required: [true, 'Price is required'],
-    },
-    discount: {
-      type: Number,
-      default: 0,
-    },
-    mainPic: {
+    shippingClass: { type: String }, // e.g. 'standard', 'express'
+    taxClass: { type: String }, // e.g. 'general', 'reduced', 'digital'
+
+    // sales & promotions
+    discount: { type: Number, default: 0 }, // overall discount %
+    saleStart: Date,
+    saleEnd: Date,
+
+    // media
+    mainPic: { type: String, required: true },
+    thumbnails: [String],
+
+    // featured, status & soft‐delete
+    isFeatured: { type: Boolean, default: false },
+    status: {
       type: String,
-      required: [true, 'mainPic is required'],
+      enum: ['draft', 'active', 'archived'],
+      default: 'active',
     },
-    thumbnails: [
-      {
-        type: String,
-      },
-    ],
-    isFeatured: {
-      type: Boolean,
-      default: false,
-    },
-    sales: { type: Number, default: 0 },
-    size: {
-      type: Number,
-    },
+    isDeleted: { type: Boolean, default: false },
+    deletedAt: Date,
+
+    // reviews
     reviews: [
       {
-        user: {
-          type: Schema.Types.ObjectId,
-          ref: 'User',
-        },
-        rating: {
-          type: Number,
-          min: 0,
-          max: 5,
-        },
+        user: { type: Schema.Types.ObjectId, ref: 'User' },
+        rating: { type: Number, min: 0, max: 5 },
         comment: String,
+        createdAt: { type: Date, default: () => new Date() },
       },
     ],
   },
-  { timestamps: true },
+  {
+    timestamps: true,
+    toJSON: { virtuals: true },
+    toObject: { virtuals: true },
+  },
 );
-export type inferredFields = InferSchemaType<typeof productSchema>;
+
+// compound index to enforce unique slug per shop
+productSchema.index({ shopId: 1, slug: 1 }, { unique: true });
+
+productSchema.path('saleEnd').validate(function (value: Date) {
+  if (!value || !this.saleStart) return true
+  return this.saleStart < value;
+}, '`saleEnd` must be after `saleStart`')
+
+export type InferredProduct = InferSchemaType<typeof productSchema>;
 export type IProduct = {
   _id: Schema.Types.ObjectId;
-} & inferredFields;
+} & InferredProduct;
 
 const Product = models.Product || model('Product', productSchema);
 export default Product;

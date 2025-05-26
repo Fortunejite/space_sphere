@@ -3,10 +3,12 @@ import { clientErrorHandler } from '@/lib/errorHandler';
 import axios from 'axios';
 import { ICategory } from '@/models/Category.model';
 
+type CustomCategory = ICategory & { subcategories: ICategory[] };
+
 interface IInitialState {
   error: string | null;
   status: 'idle' | 'loading' | 'succeeded' | 'failed';
-  categories: ICategory[];
+  categories: CustomCategory[];
 }
 
 // Thunks for handling async operations
