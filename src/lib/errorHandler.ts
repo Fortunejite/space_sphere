@@ -4,10 +4,15 @@ import { NextResponse } from 'next/server';
 import { ZodError } from 'zod';
 
 export const errorHandler =
-  (handler: (request: Request) => Promise<NextResponse>) =>
-  async (req: Request) => {
+  (
+    handler: (
+      request: Request,
+      { params }: { params: tParams },
+    ) => Promise<NextResponse>,
+  ) =>
+  async (req: Request, { params }: { params: tParams }) => {
     try {
-      return await handler(req);
+      return await handler(req, { params });
     } catch (err) {
       console.error(err);
 
