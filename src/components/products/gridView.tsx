@@ -1,4 +1,5 @@
 import Image from 'next/image';
+import Link from 'next/link';
 
 import { styled, Box, Stack, Typography, Grid, Paper } from '@mui/material';
 
@@ -48,13 +49,17 @@ const PriceSection = ({ product }: { product: IProduct }) => {
 const GridView = ({ products }: ViewsProps) => (
   <Grid container spacing={2}>
     {products.map((product) => (
-      <Grid key={product._id.toString()} size={{ xs: 6, sm: 3 }}>
+      <Grid
+        component={Link}
+        href={`/products/${product.slug}`}
+        key={product._id.toString()}
+        size={{ xs: 6, sm: 3 }}
+      >
         <Paper
           sx={{
             cursor: 'pointer',
             overflow: 'hidden',
           }}
-          // onClick={() => router.push(`/products/${product._id}`)}
         >
           <Box
             sx={{
