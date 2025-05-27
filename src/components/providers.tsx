@@ -10,6 +10,7 @@ import { fetchCategories } from '@/redux/categorySlice';
 import { useEffect } from 'react';
 import store from '@/redux/store';
 import { Provider } from 'react-redux';
+import { SnackbarProvider } from '@/context/snackbar';
 
 // import { useState, useEffect } from 'react';
 
@@ -34,8 +35,10 @@ const Providers = ({
       <SessionProvider>
         <ThemeProvider theme={theme('light')}>
           <CssBaseline />
-          {/* <Navbar mode={mode} setMode={setMode} /> */}
-          {children}
+          <SnackbarProvider>
+            {/* <Navbar mode={mode} setMode={setMode} /> */}
+            {children}
+          </SnackbarProvider>
         </ThemeProvider>
       </SessionProvider>
     </Provider>
