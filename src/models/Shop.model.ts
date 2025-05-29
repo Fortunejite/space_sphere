@@ -1,11 +1,11 @@
-import { InferSchemaType, Schema, model, models } from 'mongoose';
+import { InferSchemaType, Schema, Types, model, models } from 'mongoose';
 
 const shopSchema = new Schema(
   {
     ownerId: {
-      type: Schema.Types.ObjectId,
+      type: Types.ObjectId,
       ref: 'User',
-      required: true,
+      required: [true, 'A user is required'],
     },
     name: {
       type: String,
@@ -16,6 +16,11 @@ const shopSchema = new Schema(
       type: String,
       unique: true,
       required: true,
+    },
+    category: {
+      type: Types.ObjectId,
+      ref: 'Category',
+      required: [true, 'A category is required'],
     },
     status: {
       type: String,

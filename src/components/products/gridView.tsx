@@ -3,11 +3,12 @@ import Link from 'next/link';
 
 import { styled, Box, Stack, Typography, Grid, Paper } from '@mui/material';
 
-import { formatNumber } from '@/lib/formatNumber';
+import { formatNumber, generateURL } from '@/lib/utils';
 import { IProduct } from '@/models/Product.model';
 
 interface ViewsProps {
   products: IProduct[];
+  shop?: IShop;
 }
 
 const Badge = styled(Box)(({ theme }) => ({
@@ -46,12 +47,14 @@ const PriceSection = ({ product }: { product: IProduct }) => {
   );
 };
 
-const GridView = ({ products }: ViewsProps) => (
+const GridView = ({ products, shop }: ViewsProps) => (
   <Grid container spacing={2}>
     {products.map((product) => (
       <Grid
         component={Link}
-        href={`/products/${product.slug}`}
+        href={`${shop ? generateURL(shop.subdomain): ''}/products/${
+          product.slug
+        }`}
         key={product._id.toString()}
         size={{ xs: 6, sm: 3 }}
       >

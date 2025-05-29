@@ -24,6 +24,8 @@ export const createProductSchema = z.object({
   saleStart: z.date().optional(),
   saleEnd: z.date().optional(),
   mainPic: z.string(),
-  thumbnails: z.array(z.string()),
+  thumbnails: z
+    .array(z.string())
+    .max(5, 'A maximum of 5 thumbnails is required'),
   isFeatured: z.boolean(),
 });

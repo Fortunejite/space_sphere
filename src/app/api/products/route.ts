@@ -24,6 +24,7 @@ export const GET = errorHandler(async (request) => {
 
   // Filters
   const name = searchParams.get('name');
+  const shopId = searchParams.get('shopId');
   const category = searchParams.get('category');
   const minPrice = searchParams.get('minPrice');
   const maxPrice = searchParams.get('maxPrice');
@@ -36,6 +37,7 @@ export const GET = errorHandler(async (request) => {
   // Construct the filter query
   const query = {
     ...(name && { name }),
+    ...(shopId && { shopId }),
     ...(category && {
       categories: { $in: category.split(',') },
     }),

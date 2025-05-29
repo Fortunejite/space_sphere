@@ -11,7 +11,7 @@ import dbConnect from '@/lib/mongodb';
 import { errorHandler } from '@/lib/errorHandler';
 import { createProductSchema } from '@/lib/schema/product';
 
-export const GET = errorHandler(async (_, { params }) => {
+export const GET = errorHandler(async (req, { params }) => {
   await dbConnect();
 
   const { slug } = await params;
@@ -22,9 +22,13 @@ export const GET = errorHandler(async (_, { params }) => {
     );
   }
 
-  const product = await Product.findOne({ slug })
+  const { searchParams } = new URL(req.url);
+  const shopId = searchParams.get('shopId');
+
+  const product = await Product.findOne({ slug, ...(shopId && { shopId }) })
+    .populate('shopId')
     .populate('categories')
-    .populate('shopId');
+    .populate('reviews.user');
   if (!product) {
     return NextResponse.json({ message: 'Product not found' }, { status: 404 });
   }
@@ -64,7 +68,10 @@ export const PATCH = errorHandler(async (request, { params }) => {
     {
       new: true,
     },
-  ).populate('shopId');
+  )
+    .populate('shopId')
+    .populate('categories')
+    .populate('reviews.user');
 
   if (!product) {
     return NextResponse.json({ message: 'Product not found' }, { status: 404 });
