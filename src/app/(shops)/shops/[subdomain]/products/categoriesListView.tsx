@@ -44,11 +44,10 @@ const CategoryListView = ({ setQuery }: Props) => {
 
   const categories = useMemo(
     () =>
-      allCategories.find((cat) => cat._id === shop.category)
-        ?.subcategories || [],
+      allCategories.find((cat) => cat._id === shop.category)?.subcategories ||
+      [],
     [allCategories, shop.category],
   );
-  
 
   const [activeCategory, setActiveCategory] = useState(-1);
   const [numCategoriesShown, setNumCategoriesShown] = useState(0);
@@ -162,6 +161,10 @@ const CategoryListView = ({ setQuery }: Props) => {
             label='View All'
             icon={<Tune sx={{ width: 18, height: 18 }} />}
             isActive={activeCategory > numCategoriesShown}
+            onClick={() => {
+              // TODO: Implement view all categories functionality
+              // This could open a modal, navigate to a categories page, etc.
+            }}
           />
         )}
       </Box>
