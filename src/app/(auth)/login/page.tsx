@@ -11,11 +11,11 @@ import {
   Typography,
 } from '@mui/material';
 
-import SimpleSnackbar from '@/components/snackbar';
 import { loginUserSchema } from '@/lib/schema/auth';
 import { ZodError } from 'zod';
 import { signIn } from 'next-auth/react';
 import { useRouter, useSearchParams } from 'next/navigation';
+import { useSnackbar } from '@/context/snackbar';
 
 const LoginPage = () => {
   const router = useRouter();
@@ -26,7 +26,9 @@ const LoginPage = () => {
     password: '',
   });
   const [loading, setLoading] = useState(false);
-  const [snackbarOpen, setSnackbarOpen] = useState(false);
+  const { setIsOpen: setSnackbarOpen, setMessage } = useSnackbar();
+
+  setMessage('Invalid credentials');
   const [formErrors, setFormErrors] = useState<Record<string, string>>({});
 
   const handleChange = useCallback((e: ChangeEvent<HTMLInputElement>) => {
@@ -131,11 +133,6 @@ const LoginPage = () => {
             signup!
           </Link>
         </Typography>
-        <SimpleSnackbar
-          open={snackbarOpen}
-          setOpen={setSnackbarOpen}
-          message='Invalid credentials'
-        />
         <Stack></Stack>
       </Grid>
       <Grid

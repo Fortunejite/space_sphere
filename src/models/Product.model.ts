@@ -3,10 +3,6 @@ import { InferSchemaType, Schema, model, models } from 'mongoose';
 const variantSchema = new Schema(
   {
     attributes: Schema.Types.Mixed, // e.g. { size: 'M', color: 'red' }
-    price: { type: Number, required: true },
-    currency: { type: String, default: 'USD' },
-    stock: { type: Number, default: 0 },
-    discount: { type: Number, default: 0 },
     isDefault: { type: Boolean, default: false },
   },
   { _id: false },
@@ -23,7 +19,7 @@ const productSchema = new Schema(
 
     // core product info
     name: { type: String, required: true, minlength: 3 },
-    slug: { type: String, required: true},
+    slug: { type: String, required: true },
     description: {
       type: String,
     },
@@ -72,8 +68,17 @@ const productSchema = new Schema(
     // reviews
     reviews: [
       {
-        user: { type: Schema.Types.ObjectId, ref: 'User' },
-        rating: { type: Number, min: 0, max: 5 },
+        user: {
+          type: Schema.Types.ObjectId,
+          ref: 'User',
+          required: [true, 'A reviewer is required'],
+        },
+        rating: {
+          type: Number,
+          min: 0,
+          max: 5,
+          required: [true, 'Provide a rating'],
+        },
         comment: String,
         createdAt: { type: Date, default: () => new Date() },
       },
@@ -90,9 +95,9 @@ const productSchema = new Schema(
 productSchema.index({ shopId: 1, slug: 1 }, { unique: true });
 
 productSchema.path('saleEnd').validate(function (value: Date) {
-  if (!value || !this.saleStart) return true
+  if (!value || !this.saleStart) return true;
   return this.saleStart < value;
-}, '`saleEnd` must be after `saleStart`')
+}, '`saleEnd` must be after `saleStart`');
 
 export type InferredProduct = InferSchemaType<typeof productSchema>;
 export type IProduct = {

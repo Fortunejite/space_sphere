@@ -1,8 +1,11 @@
+import { NextResponse } from 'next/server';
+
 import { auth } from '@/auth';
+
+import Category from '@/models/Category.model';
+
 import { errorHandler } from '@/lib/errorHandler';
 import dbConnect from '@/lib/mongodb';
-import Category from '@/models/Category.model';
-import { NextResponse } from 'next/server';
 
 export const GET = errorHandler(async () => {
   await dbConnect();
@@ -15,7 +18,7 @@ export const GET = errorHandler(async () => {
   return NextResponse.json(categories);
 });
 
-export const POST = errorHandler(async (request: Request) => {
+export const POST = errorHandler(async (request) => {
   await dbConnect();
 
   const session = await auth();

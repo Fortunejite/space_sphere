@@ -1,11 +1,14 @@
+import { NextResponse } from 'next/server';
+
 import { signIn } from '@/auth';
+
+import User from '@/models/User.model';
+
 import { errorHandler } from '@/lib/errorHandler';
 import dbConnect from '@/lib/mongodb';
 import { createUserSchema } from '@/lib/schema/auth';
-import User from '@/models/User.model';
-import { NextResponse } from 'next/server';
 
-export const POST = errorHandler(async (request: Request) => {
+export const POST = errorHandler(async (request) => {
   await dbConnect();
 
   const body = await request.json();

@@ -10,25 +10,45 @@ import { NextResponse } from 'next/server';
 export const GET = errorHandler(async () => {
   await dbConnect();
 
+  const categories = await Category.find();
+
   await Promise.all([Product.deleteMany({}), Shop.deleteMany({})]);
   console.log('🗑️  Cleared existing data');
 
   const user = (await User.find())[0];
 
-  // 2) Create demo shop
-  const shop = await Shop.create({
+  // 2) Create demo shops
+  const shop1 = await Shop.create({
     ownerId: user._id,
-    name: 'Demo Shop',
-    subdomain: 'demo-shop',
+    name: 'Demo Electric Shop',
+    subdomain: 'electric-shop',
+    category: categories.find((c) => c.name === 'Electronics')._id,
     // …any required shop fields…
   });
-  console.log(`🏬 Created Shop: ${shop._id}`);
+  console.log(`🏬 Created Shop: ${shop1._id}`);
 
-  const categories = await Category.find();
+  const shop2 = await Shop.create({
+    ownerId: user._id,
+    name: 'Demo Books Shop',
+    subdomain: 'books-shop',
+    category: categories.find((c) => c.name === 'Books')._id,
+    // …any required shop fields…
+  });
+  console.log(`🏬 Created Shop: ${shop2._id}`);
+
+  const shop3 = await Shop.create({
+    ownerId: user._id,
+    name: 'Demo Clothing Shop',
+    subdomain: 'clothing-shop',
+    category: categories.find((c) => c.name === 'Clothing')._id,
+    // …any required shop fields…
+  });
+  console.log(`🏬 Created Shop: ${shop3._id}`);
+
 
   const products = [
     {
-      shopId: shop._id,
+      shopId: shop1._id,
       name: 'Wireless Headphones',
       slug: 'wireless-headphones',
       description: 'High-quality over-ear wireless headphones',
@@ -37,7 +57,7 @@ export const GET = errorHandler(async () => {
       variants: [
         {
           attributes: { color: 'black' },
-          price: 99.99,
+          price: 99.99, 
           stock: 50,
           isDefault: true,
         },
@@ -71,7 +91,7 @@ export const GET = errorHandler(async () => {
       ],
     },
     {
-      shopId: shop._id,
+      shopId: shop3._id,
       name: 'Men’s T-Shirt',
       slug: 'mens-tshirt',
       description: '100% cotton, various colors',
@@ -107,7 +127,7 @@ export const GET = errorHandler(async () => {
       ],
     },
     {
-      shopId: shop._id,
+      shopId: shop1._id,
       name: '4K Action Camera',
       slug: '4k-action-camera',
       description: 'Waterproof, 4K video recording',

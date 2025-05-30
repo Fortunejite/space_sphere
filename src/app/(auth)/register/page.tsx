@@ -6,19 +6,16 @@ import axios from 'axios';
 
 import { useRouter } from 'next/navigation';
 
-import {
-  Button,
-  Grid,
-  Link,
-  TextField,
-  Typography,
-} from '@mui/material';
-
-import SimpleSnackbar from '@/components/snackbar';
+import { Button, Grid, Link, TextField, Typography } from '@mui/material';
 import { createUserSchema } from '@/lib/schema/auth';
+import { useSnackbar } from '@/context/snackbar';
 
 const RegisterPage = () => {
   const router = useRouter();
+  const {
+    setIsOpen: setSnackbarOpen,
+    setMessage: setGeneralMessage,
+  } = useSnackbar();
 
   const [formData, setFormData] = useState({
     username: '',
@@ -28,8 +25,6 @@ const RegisterPage = () => {
   });
 
   const [loading, setLoading] = useState(false);
-  const [snackbarOpen, setSnackbarOpen] = useState(false);
-  const [generalMessage, setGeneralMessage] = useState('');
   const [formErrors, setFormErrors] = useState<Record<string, string>>({});
 
   const handleChange = useCallback((e: ChangeEvent<HTMLInputElement>) => {
@@ -81,11 +76,11 @@ const RegisterPage = () => {
           setFormErrors(errors);
         } else {
           setGeneralMessage(err.response?.data.message);
-          setSnackbarOpen(true)
+          setSnackbarOpen(true);
         }
       } else {
         setGeneralMessage('An error occured');
-        setSnackbarOpen(true)
+        setSnackbarOpen(true);
       }
     } finally {
       setLoading(false);
@@ -108,7 +103,9 @@ const RegisterPage = () => {
         onSubmit={handleSubmit}
       >
         <Typography variant='h1'>Get Started!</Typography>
-        <Typography variant='body1'>Join 1000+ shop owners on Shop Sphere</Typography>
+        <Typography variant='body1'>
+          Join 1000+ shop owners on Shop Sphere
+        </Typography>
         <TextField
           required
           label='Username'
@@ -171,11 +168,6 @@ const RegisterPage = () => {
             Login
           </Link>
         </Typography>
-        <SimpleSnackbar
-          open={snackbarOpen}
-          setOpen={setSnackbarOpen}
-          message={generalMessage}
-        />
       </Grid>
       <Grid
         size={{ xs: 12, sm: 4 }}
@@ -185,7 +177,7 @@ const RegisterPage = () => {
           backgroundSize: 'cover',
           backgroundPosition: 'center',
           width: '100%',
-          minHeight: 300
+          minHeight: 300,
         }}
       ></Grid>
     </Grid>

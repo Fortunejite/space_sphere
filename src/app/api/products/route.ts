@@ -1,12 +1,18 @@
-import dbConnect from '@/lib/mongodb';
-import Product from '@/models/Product.model';
+import slugify from 'slugify';
 import { SortOrder } from 'mongoose';
 import { NextResponse } from 'next/server';
 
-import '@/models/Category.model';
-import { errorHandler } from '@/lib/errorHandler';
+import { auth } from '@/auth';
 
-export const GET = errorHandler(async (request: Request) => {
+import Product from '@/models/Product.model';
+import Shop from '@/models/Shop.model';
+import '@/models/Category.model';
+
+import { errorHandler } from '@/lib/errorHandler';
+import { createProductSchema } from '@/lib/schema/product';
+import dbConnect from '@/lib/mongodb';
+
+export const GET = errorHandler(async (request) => {
   await dbConnect();
 
   const { searchParams } = new URL(request.url);
@@ -18,6 +24,7 @@ export const GET = errorHandler(async (request: Request) => {
 
   // Filters
   const name = searchParams.get('name');
+  const shopId = searchParams.get('shopId');
   const category = searchParams.get('category');
   const minPrice = searchParams.get('minPrice');
   const maxPrice = searchParams.get('maxPrice');
@@ -30,6 +37,7 @@ export const GET = errorHandler(async (request: Request) => {
   // Construct the filter query
   const query = {
     ...(name && { name }),
+    ...(shopId && { shopId }),
     ...(category && {
       categories: { $in: category.split(',') },
     }),
@@ -56,7 +64,35 @@ export const GET = errorHandler(async (request: Request) => {
     .sort(sortQuery)
     .skip(skip)
     .limit(limit)
-    .populate('categories');
+    .populate('categories')
+    .populate('shopId');
 
   return NextResponse.json(products);
+});
+
+export const POST = errorHandler(async (request) => {
+  await dbConnect();
+
+  const session = await auth();
+
+  if (!session)
+    return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
+
+  const body = await request.json();
+  const newProduct = createProductSchema.parse(body);
+
+  const shop = await Shop.findById(newProduct.shopId);
+  if (!shop)
+    return NextResponse.json({ message: 'Shop not found' }, { status: 400 });
+
+  if (session.user._id !== shop.ownerId)
+    return NextResponse.json(
+      { message: 'Insufficient Permission' },
+      { status: 403 },
+    );
+
+  const product = new Product(newProduct);
+  product.slug = slugify(product.name);
+  await product.save();
+  return NextResponse.json(product, { status: 201 });
 });

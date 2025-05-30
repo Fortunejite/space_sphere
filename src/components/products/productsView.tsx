@@ -9,14 +9,16 @@ import GridView from './gridView';
 import ListView from './listView';
 import GridViewSkeleton from './gridViewSkeleton';
 import ListViewSkeleton from './listViewSkeleton';
+import { IShop } from '@/models/Shop.model';
 
 interface Props {
   query: Record<string, string>;
   limit: number;
   style: 'grid' | 'list';
+  shop?: IShop;
 }
 
-const ProductsView = ({ query, limit, style }: Props) => {
+const ProductsView = ({ query, limit, style, shop }: Props) => {
   const [products, setProducts] = useState<IProduct[]>([]);
   const [loading, setLoading] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
@@ -35,6 +37,7 @@ const ProductsView = ({ query, limit, style }: Props) => {
       const params = new URLSearchParams();
       params.set('limit', limit.toString());
       params.set('page', currentPage.toString());
+      if (shop) params.set('shopId', shop._id.toString());
       Object.entries(query).forEach(([key, value]) => {
         params.set(key, value);
       });
@@ -48,7 +51,7 @@ const ProductsView = ({ query, limit, style }: Props) => {
     } finally {
       setLoading(false);
     }
-  }, [query, currentPage, limit, isLast]);
+  }, [query, currentPage, limit, isLast, shop]);
 
   useEffect(() => {
     fetchProducts();
@@ -58,12 +61,12 @@ const ProductsView = ({ query, limit, style }: Props) => {
     loading ? (
       <GridViewSkeleton limit={limit} />
     ) : (
-      <GridView products={products} />
+      <GridView products={products} shop={shop} />
     )
   ) : loading ? (
     <ListViewSkeleton limit={limit} />
   ) : (
-    <ListView products={products} />
+    <ListView products={products} shop={shop} />
   );
 };
 
