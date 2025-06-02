@@ -110,7 +110,7 @@ const ProductDetailsPage = () => {
 
   // Compute average rating
   const avgRatings = useMemo(() => {
-    if (!product) return;
+    if (!product) return 0;
     const total = product.reviews.reduce((sum, r) => sum + (r.rating || 0), 0);
     return product.reviews.length ? total / product.reviews.length : 0;
   }, [product]);
