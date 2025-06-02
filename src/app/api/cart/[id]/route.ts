@@ -32,7 +32,7 @@ export const PATCH = errorHandler(async (request, { params }) => {
   }
 
   const { quantity, variantIndex } = await request.json();
-  if (quantity == null || variantIndex == null) {
+  if (quantity == null && variantIndex == null) {
     return NextResponse.json({ message: 'Nothing to update' }, { status: 400 });
   }
 
