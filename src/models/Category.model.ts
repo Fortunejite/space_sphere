@@ -1,4 +1,4 @@
-import { InferSchemaType, Schema, model, models } from 'mongoose';
+import { InferSchemaType, Schema, Types, model, models } from 'mongoose';
 import slugify from 'slugify';
 
 const categorySchema = new Schema(
@@ -10,7 +10,7 @@ const categorySchema = new Schema(
       trim: true,
     },
     parent: {
-      type: Schema.Types.ObjectId,
+      type: Types.ObjectId,
       ref: 'Category',
       default: null,
       index: true,
@@ -43,7 +43,7 @@ categorySchema.pre('validate', async function (next) {
 
 type inferredFields = InferSchemaType<typeof categorySchema>;
 export type ICategory = {
-  _id: Schema.Types.ObjectId;
+  _id: Types.ObjectId;
 } & inferredFields;
 
 const Category = models.Category || model('Category', categorySchema);

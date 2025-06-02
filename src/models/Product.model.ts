@@ -1,4 +1,4 @@
-import { InferSchemaType, Schema, model, models } from 'mongoose';
+import { InferSchemaType, Schema, Types, model, models } from 'mongoose';
 
 const variantSchema = new Schema(
   {
@@ -11,7 +11,7 @@ const variantSchema = new Schema(
 const productSchema = new Schema(
   {
     shopId: {
-      type: Schema.Types.ObjectId,
+      type: Types.ObjectId,
       ref: 'Shop',
       required: true,
       index: true, // for tenant isolation queries
@@ -25,7 +25,7 @@ const productSchema = new Schema(
     },
 
     // categorization
-    categories: [{ type: Schema.Types.ObjectId, ref: 'Category' }],
+    categories: [{ type: Types.ObjectId, ref: 'Category' }],
     tags: [String],
 
     // variants & pricing
@@ -69,7 +69,7 @@ const productSchema = new Schema(
     reviews: [
       {
         user: {
-          type: Schema.Types.ObjectId,
+          type: Types.ObjectId,
           ref: 'User',
           required: [true, 'A reviewer is required'],
         },
@@ -101,7 +101,7 @@ productSchema.path('saleEnd').validate(function (value: Date) {
 
 export type InferredProduct = InferSchemaType<typeof productSchema>;
 export type IProduct = {
-  _id: Schema.Types.ObjectId;
+  _id: Types.ObjectId;
 } & InferredProduct;
 
 const Product = models.Product || model('Product', productSchema);

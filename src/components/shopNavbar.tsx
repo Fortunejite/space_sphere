@@ -32,6 +32,7 @@ import { useState } from 'react';
 import { useAppSelector } from '@/hooks/redux.hook';
 import { useRouter } from 'next/navigation';
 import { generateURL } from '@/lib/utils';
+import { getShopCart } from '@/redux/cartSlice';
 
 interface DrawerProps {
   open: boolean;
@@ -203,7 +204,11 @@ const ShopNavbar = () => {
   const { status } = useSession();
   const { shop } = useAppSelector((state) => state.shop);
   const [drawerOpen, setDrawerOpen] = useState(false);
+  
+  const items = useAppSelector((state) => shop ? getShopCart(state, shop._id) : []);
 
+  if(!shop) return null
+  
   return (
     <AppBar position='sticky' elevation={1}>
       <StyledToolbar>
@@ -248,7 +253,7 @@ const ShopNavbar = () => {
               LinkComponent={Link}
               href={`${generateURL(shop.subdomain)}/cart`}
             >
-              <Badge badgeContent={4} color='secondary'>
+              <Badge badgeContent={items.length} color='secondary'>
                 <ShoppingCartOutlined />
               </Badge>
             </IconButton>

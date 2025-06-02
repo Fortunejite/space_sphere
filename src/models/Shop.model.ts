@@ -32,7 +32,7 @@ const shopSchema = new Schema(
 );
 export type inferredFields = InferSchemaType<typeof shopSchema>;
 export type IShop = {
-  _id: Schema.Types.ObjectId;
+  _id: Types.ObjectId;
 } & inferredFields;
 
 const Shop = models.Shop || model('Shop', shopSchema);

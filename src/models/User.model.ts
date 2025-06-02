@@ -1,4 +1,4 @@
-import { InferSchemaType, Schema, model, models } from 'mongoose';
+import { InferSchemaType, Schema, Types, model, models } from 'mongoose';
 import bcrypt from "bcrypt";
 
 const userSchema = new Schema(
@@ -40,7 +40,7 @@ const userSchema = new Schema(
     },
     // favourite: [
     //   {
-    //     type: Schema.Types.ObjectId,
+    //     type: Types.ObjectId,
     //     ref: 'Product',
     //   },
     // ],
@@ -61,7 +61,7 @@ userSchema.methods.comparePassword = async function (password: string): Promise<
 
 export type inferredFields = InferSchemaType<typeof userSchema>;
 export type IUser = {
-  _id: Schema.Types.ObjectId;
+  _id: Types.ObjectId;
 } & inferredFields;
 
 const User = models.User || model('User', userSchema);

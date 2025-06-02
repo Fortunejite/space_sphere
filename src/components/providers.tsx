@@ -11,6 +11,7 @@ import { useEffect } from 'react';
 import store from '@/redux/store';
 import { Provider } from 'react-redux';
 import { SnackbarProvider } from '@/context/snackbar';
+import { fetchCart } from '@/redux/cartSlice';
 
 // import { useState, useEffect } from 'react';
 
@@ -19,6 +20,7 @@ const LoadReduxState = () => {
 
   useEffect(() => {
     dispatch(fetchCategories());
+    dispatch(fetchCart());
   }, [dispatch]);
 
   return <></>;
