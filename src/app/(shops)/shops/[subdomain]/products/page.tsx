@@ -86,6 +86,8 @@ const Products = () => {
     setQuery((prev) => ({ ...prev, sort: sortType.label }));
   };
 
+  if (!shop) return null
+
   return (
     <Stack py={2} gap={1}>
       <Stack

@@ -1,15 +1,18 @@
-import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
-import { clientErrorHandler } from '@/lib/errorHandler';
 import axios from 'axios';
+
+import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
+
+import { clientErrorHandler } from '@/lib/errorHandler';
+
 import { IShop } from '@/models/Shop.model';
 import { IUser } from '@/models/User.model';
 
-type CustomShop = IShop & { ownerId: IUser };
+type CustomShop = IShop & { ownerId: IUser, _id: string };
 
 interface IInitialState {
   error: string | null;
   status: 'idle' | 'loading' | 'succeeded' | 'failed';
-  shop: CustomShop;
+  shop: CustomShop | null;
 }
 
 // Thunks for handling async operations
@@ -27,7 +30,7 @@ export const fetchShop = createAsyncThunk(
 );
 
 const initialState: IInitialState = {
-  shop: {} as CustomShop,
+  shop: null,
   status: 'idle',
   error: null,
 };
@@ -49,6 +52,7 @@ const shopSlice = createSlice({
       .addCase(fetchShop.rejected, (state, action) => {
         state.status = 'failed';
         state.error = action.payload as string;
+        state.shop = null;
       });
   },
 });

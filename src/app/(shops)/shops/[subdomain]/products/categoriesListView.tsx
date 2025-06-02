@@ -44,9 +44,9 @@ const CategoryListView = ({ setQuery }: Props) => {
 
   const categories = useMemo(
     () =>
-      allCategories.find((cat) => cat._id === shop.category)?.subcategories ||
+      allCategories.find((cat) => cat._id === shop?.category)?.subcategories ||
       [],
-    [allCategories, shop.category],
+    [allCategories, shop],
   );
 
   const [activeCategory, setActiveCategory] = useState(-1);

@@ -1,9 +1,9 @@
-import { InferSchemaType, Schema, model, models } from 'mongoose';
+import { InferSchemaType, Schema, Types, model, models } from 'mongoose';
 
 const shopSettingSchema = new Schema(
   {
     shopId: {
-      type: Schema.Types.ObjectId,
+      type: Types.ObjectId,
       ref: 'Shop',
       required: true,
     },
@@ -13,7 +13,7 @@ const shopSettingSchema = new Schema(
 
 export type inferredFields = InferSchemaType<typeof shopSettingSchema>;
 export type IShopSetting = {
-  _id: Schema.Types.ObjectId;
+  _id: Types.ObjectId;
 } & inferredFields;
 
 const ShopSetting = models.ShopSetting || model('ShopSetting', shopSettingSchema);

@@ -1,13 +1,12 @@
 'use client';
 
-import { useAppSelector } from '@/hooks/redux.hook';
-import { clientErrorHandler } from '@/lib/errorHandler';
-import { formatNumber, generateURL } from '@/lib/utils';
-import { ICategory } from '@/models/Category.model';
-import { IProduct } from '@/models/Product.model';
-import { IUser } from '@/models/User.model';
+import { useEffect, useState, useCallback, useMemo } from 'react';
+import { useParams, notFound } from 'next/navigation';
+import Image from 'next/image';
+import Link from 'next/link';
+import axios from 'axios';
+
 import {
-  Avatar,
   Box,
   Breadcrumbs,
   Button,
@@ -15,107 +14,141 @@ import {
   Paper,
   Rating,
   Stack,
-  Theme,
   Typography,
   useMediaQuery,
+  Theme,
+  Avatar,
+  styled,
 } from '@mui/material';
-import axios from 'axios';
-import Image from 'next/image';
-import Link from 'next/link';
-import { notFound, useParams } from 'next/navigation';
-import { useEffect, useState } from 'react';
 
-interface CustomProduct extends Omit<IProduct, 'categories' | 'reviews'> {
+import { useAppSelector, useAppDispatch } from '@/hooks/redux.hook';
+import { clientErrorHandler } from '@/lib/errorHandler';
+import { formatNumber, generateURL } from '@/lib/utils';
+import { getShopItem, toggleCart, updateCart } from '@/redux/cartSlice';
+
+import { ICategory } from '@/models/Category.model';
+import { IProduct } from '@/models/Product.model';
+import { IUser } from '@/models/User.model';
+
+interface CustomProduct
+  extends Omit<IProduct, 'categories' | 'reviews' | '_id'> {
+  _id: string;
   categories: ICategory[];
-  reviews: { user: IUser; rating: number; comment?: string; createdAt: Date }[];
+  reviews: {
+    user: IUser;
+    rating: number;
+    comment?: string;
+    createdAt: string | Date;
+  }[];
 }
 
-// const QuantityChangeButton = styled(IconButton)(({ theme }) => ({
-//   borderRadius: 4,
-//   backgroundColor: theme.palette.primary.main,
-//   height: '100%',
-//   '&:hover': {
-//     backgroundColor: theme.palette.primary.main,
-//     opacity: 0.8,
-//   },
-//   '&:disabled': {
-//     backgroundColor: theme.palette.primary.main,
-//     opacity: 0.5,
-//   },
-// }));
-
-// const QuantityControls = ({
-//   product,
-//   onAdd,
-//   onSubtract,
-// }: {
-//   product: CustomProduct
-//   onAdd: (e: MouseEvent) => void;
-//   onSubtract: (e: MouseEvent) => void;
-// }) => (
-//   <Stack direction="row">
-//     <QuantityChangeButton
-//       disabled={cartItem.quantity <= 1 || status === 'loading'}
-//       onClick={onSubtract}
-//     >
-//       <Remove />
-//     </QuantityChangeButton>
-//     <Box
-//       flex={1}
-//       sx={{
-//         display: 'flex',
-//         alignItems: 'center',
-//         justifyContent: 'center',
-//       }}
-//     >
-//       <Typography>{cartItem.quantity}</Typography>
-//     </Box>
-//     <QuantityChangeButton
-//       disabled={cartItem.quantity >= productStock || status === 'loading'}
-//       onClick={onAdd}
-//     >
-//       <Add />
-//     </QuantityChangeButton>
-//   </Stack>
-// );
+const VariantElement = styled(Paper, {
+  shouldForwardProp: (prop) => prop !== 'isActive',
+})<{ isActive?: boolean }>(({ theme, isActive }) => ({
+  padding: theme.spacing(1),
+  cursor: 'pointer',
+  border: isActive ? `1px solid ${theme.palette.primary.main}` : 'none',
+}));
 
 const ProductDetailsPage = () => {
   const { slug } = useParams();
-  const { shop } = useAppSelector((state) => state.shop);
+  const dispatch = useAppDispatch();
+  const shop = useAppSelector((state) => state.shop.shop);
+  const cartStatus = useAppSelector((state) => state.cart.status);
+  const isToggling = cartStatus === 'loading';
+
+  const [product, setProduct] = useState<CustomProduct | null>(null);
+  const [selectedVariant, setSelectedVariant] = useState(0);
+
   const isMobile = useMediaQuery((theme: Theme) =>
     theme.breakpoints.down('sm'),
   );
 
-  const [product, setProduct] = useState<CustomProduct | null>(
-    {} as CustomProduct,
+  const shopId = shop?._id || '';
+  const productId = product?._id || '';
+
+  // Get cart item only once productId and shopId are available
+  const cartItem = useAppSelector((state) =>
+    productId && shopId ? getShopItem(state, shopId, productId) : undefined,
   );
 
+  // Initialize or update selectedVariant when product or cartItem changes
   useEffect(() => {
-    const fetchProduct = async () => {
-      try {
-        const params = new URLSearchParams();
-        params.set('shopId', shop._id.toString());
-        const { data } = await axios.get(`/api/products/${slug}`, { params });
-        setProduct(data);
-      } catch (e) {
-        if (axios.isAxiosError(e) && e.response?.status === 404)
-          setProduct(null);
-        console.error(clientErrorHandler(e));
+    if (!product) return;
+
+    if (cartItem && cartItem.variantIndex != null) {
+      setSelectedVariant(cartItem.variantIndex);
+    } else if (product.variants.length > 0) {
+      const defaultIndex = product.variants.findIndex((v) => v.isDefault);
+      setSelectedVariant(defaultIndex >= 0 ? defaultIndex : 0);
+    }
+  }, [product, cartItem]);
+
+  // Fetch product once slug or shopId changes
+  const fetchProduct = useCallback(async () => {
+    if (!slug || !shopId) return;
+
+    try {
+      const params = new URLSearchParams();
+      params.set('shopId', shopId);
+      const { data } = await axios.get<CustomProduct>(`/api/products/${slug}`, {
+        params,
+      });
+      setProduct(data);
+    } catch (err) {
+      if (axios.isAxiosError(err) && err.response?.status === 404) {
+        notFound();
+      } else {
+        console.error(clientErrorHandler(err));
       }
-    };
+    }
+  }, [slug, shopId]);
 
+  useEffect(() => {
     fetchProduct();
-  }, [slug, shop._id]);
+  }, [fetchProduct]);
 
-  if (!product) return notFound();
+  // Compute average rating
+  const avgRatings = useMemo(() => {
+    if (!product) return 0;
+    const total = product.reviews.reduce((sum, r) => sum + (r.rating || 0), 0);
+    return product.reviews.length ? total / product.reviews.length : 0;
+  }, [product]);
 
-  if (!product.name) return null;
+  const handleToggleCart = useCallback(() => {
+    if (!product) return;
+    dispatch(
+      toggleCart({
+        productId,
+        shopId,
+        variantIndex:
+          selectedVariant >= 0 && selectedVariant < product.variants.length
+            ? selectedVariant
+            : undefined,
+      }),
+    );
+  }, [dispatch, productId, shopId, selectedVariant, product]);
 
-  const avgRatings =
-    product.reviews.reduce(
-      (acc, item) => (item.rating ? item.rating + acc : acc),
-      0,
-    ) / product.reviews.length;
+  const handleVariantChange = useCallback(
+    (index: number) => {
+      if (!product) return;
+      if (index < 0 || index >= product.variants.length) return;
+      setSelectedVariant(index);
+      if (cartItem) {
+        dispatch(
+          updateCart({
+            shopId,
+            productId,
+            variantIndex: index,
+          }),
+        );
+      }
+    },
+    [dispatch, cartItem, shopId, productId, product],
+  );
+
+  if (!product) return null;
+  if (!shop) return null;
 
   return (
     <Stack p={2} gap={2}>
@@ -124,10 +157,12 @@ const ProductDetailsPage = () => {
         <Link href={`${generateURL(shop.subdomain)}/products`}>Products</Link>
         <Typography>{product.name}</Typography>
       </Breadcrumbs>
+
       <Grid container spacing={2}>
+        {/* Left: Image */}
         <Grid size={{ xs: 12, sm: 6 }}>
           <Box
-            bgcolor={'background.paper'}
+            bgcolor='background.paper'
             sx={{
               position: 'relative',
               height: isMobile ? '50vh' : 'calc(100vh - 72px)',
@@ -138,25 +173,27 @@ const ProductDetailsPage = () => {
               src={product.mainPic}
               alt={product.name}
               fill
-              objectFit='contain'
+              style={{ objectFit: 'contain' }}
             />
           </Box>
         </Grid>
+
+        {/* Right: Details */}
         <Grid size={{ xs: 12, sm: 6 }}>
           <Stack spacing={2}>
             <Typography variant='h4'>{product.name}</Typography>
-            <Stack direction={'row'} justifyContent={'space-between'}>
+
+            <Stack direction='row' justifyContent='space-between'>
               {product.stock > 0 ? (
-                <Typography variant='body1' color={'success'}>
+                <Typography variant='body1' color='success.main'>
                   In Stock
                 </Typography>
               ) : (
-                <Typography variant='body1' color={'error'}>
-                  Out Stock
+                <Typography variant='body1' color='error.main'>
+                  Out of Stock
                 </Typography>
               )}
-
-              <Stack direction='row' gap={2}>
+              <Stack direction='row' gap={2} alignItems='center'>
                 <Rating
                   precision={0.5}
                   value={avgRatings}
@@ -170,21 +207,16 @@ const ProductDetailsPage = () => {
                 )}
               </Stack>
             </Stack>
+
             {product.discount > 0 ? (
-              <Stack direction={'row'} gap={1} alignItems={'end'}>
+              <Stack direction='row' gap={1} alignItems='flex-end'>
                 <Typography
                   variant='body1'
                   sx={{ textDecoration: 'line-through' }}
                 >
                   ₦{formatNumber(product.price.toFixed(0))}
                 </Typography>
-
-                <Typography
-                  variant='h5'
-                  component='p'
-                  fontWeight={'bold'}
-                  color='secondary'
-                >
+                <Typography variant='h5' fontWeight='bold' color='secondary'>
                   ₦
                   {formatNumber(
                     (
@@ -193,11 +225,9 @@ const ProductDetailsPage = () => {
                     ).toFixed(0),
                   )}
                 </Typography>
-                <Typography variant='body1' ml={1}>
-                  |
-                </Typography>
-                <Typography variant='body1'>You Save</Typography>
-                <Typography color='secondary' fontWeight={'bold'}>
+                <Typography>|</Typography>
+                <Typography>You Save</Typography>
+                <Typography color='secondary' fontWeight='bold'>
                   ₦
                   {formatNumber(
                     ((product.discount / 100) * product.price).toFixed(0),
@@ -206,24 +236,20 @@ const ProductDetailsPage = () => {
                 <Typography color='secondary'>({product.discount}%)</Typography>
               </Stack>
             ) : (
-              <Stack direction={'row'}>
-                <Typography variant='h5' fontWeight={'bold'}>
-                  ₦{formatNumber(product.price.toFixed(0))}
-                </Typography>
-              </Stack>
+              <Typography variant='h5' fontWeight='bold'>
+                ₦{formatNumber(product.price.toFixed(0))}
+              </Typography>
             )}
 
             {product.variants.length > 0 && (
               <>
                 <Typography variant='body1'>Variants</Typography>
-                <Stack direction={'row'} gap={2} flexWrap='wrap'>
+                <Stack direction='row' gap={2} flexWrap='wrap'>
                   {product.variants.map((variant, i) => (
-                    <Paper
+                    <VariantElement
                       key={i}
-                      sx={{
-                        p: 1,
-                        cursor: 'pointer',
-                      }}
+                      isActive={i === selectedVariant}
+                      onClick={() => handleVariantChange(i)}
                     >
                       {Object.entries(variant.attributes).map(
                         ([key, value]) => (
@@ -248,14 +274,19 @@ const ProductDetailsPage = () => {
                           </Stack>
                         ),
                       )}
-                    </Paper>
+                    </VariantElement>
                   ))}
                 </Stack>
               </>
             )}
 
-            <Button variant='contained' fullWidth>
-              Add to Cart
+            <Button
+              variant='contained'
+              fullWidth
+              onClick={handleToggleCart}
+              disabled={isToggling}
+            >
+              {cartItem ? 'Remove from Cart' : 'Add to Cart'}
             </Button>
 
             <Typography variant='body1'>Product Description</Typography>
@@ -264,7 +295,6 @@ const ProductDetailsPage = () => {
             </Typography>
 
             <Typography variant='body1'>Product Details</Typography>
-
             <Grid container spacing={1}>
               <Grid size={6}>
                 <Typography variant='body2' color='text.secondary'>
@@ -274,6 +304,7 @@ const ProductDetailsPage = () => {
               <Grid size={6}>
                 <Typography variant='body2'>{product.weight} grams</Typography>
               </Grid>
+
               {product.dimensions && (
                 <>
                   <Grid size={6}>
@@ -289,6 +320,7 @@ const ProductDetailsPage = () => {
                   </Grid>
                 </>
               )}
+
               <Grid size={6}>
                 <Typography variant='body2' color='text.secondary'>
                   Categories:
@@ -296,9 +328,10 @@ const ProductDetailsPage = () => {
               </Grid>
               <Grid size={6}>
                 <Typography variant='body2'>
-                  {product.categories.map((cat) => cat.name).join(', ')}
+                  {product.categories.map((c) => c.name).join(', ')}
                 </Typography>
               </Grid>
+
               <Grid size={6}>
                 <Typography variant='body2' color='text.secondary'>
                   Tags:
@@ -310,20 +343,21 @@ const ProductDetailsPage = () => {
                 </Typography>
               </Grid>
             </Grid>
+
             <Typography variant='body1'>Reviews</Typography>
             <Stack spacing={1}>
               {product.reviews.length > 0 ? (
-                product.reviews.map((review, index) => (
+                product.reviews.map((review, idx) => (
                   <Stack
-                    key={index}
-                    justifyContent='space-between'
+                    key={idx}
                     direction='row'
+                    justifyContent='space-between'
                   >
                     <Box>
-                      <Stack direction={'row'}>
-                        <Avatar sx={{ height: 24, width: 24 }} />
+                      <Stack direction='row' alignItems='center' gap={1}>
+                        <Avatar sx={{ width: 24, height: 24 }} />
                         <Typography variant='body2'>
-                          {review.user?.username}
+                          {review.user.username}
                         </Typography>
                       </Stack>
                       <Typography variant='body2'>

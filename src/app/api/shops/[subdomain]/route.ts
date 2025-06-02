@@ -11,7 +11,7 @@ export const GET = errorHandler(async (_, { params }) => {
   const shop = await Shop.findOne({ subdomain });
 
   if (!shop)
-    return NextResponse.json({ message: 'NOT_FOUND' }, { status: 404 });
+    return NextResponse.json({ message: 'Shop not found.' }, { status: 404 });
 
   return NextResponse.json(shop);
 });
