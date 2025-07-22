@@ -127,7 +127,7 @@ const DrawerComponent = ({ open, setOpen }: DrawerProps) => {
 
   return (
     <SwipeableDrawer
-      anchor='left'
+      anchor="left"
       open={open}
       onOpen={() => setOpen(true)}
       onClose={() => {
@@ -138,9 +138,9 @@ const DrawerComponent = ({ open, setOpen }: DrawerProps) => {
     >
       <Box
         width={250}
-        position='relative'
-        height='100%'
-        bgcolor='background.default'
+        position="relative"
+        height="100%"
+        bgcolor="background.default"
       >
         <List>
           {items.map((item) => (
@@ -155,7 +155,7 @@ const DrawerComponent = ({ open, setOpen }: DrawerProps) => {
 
         {/* Nested view overlay with slide animation */}
         <Slide
-          direction='left'
+          direction="left"
           in={Boolean(nestedItems)}
           mountOnEnter
           unmountOnExit
@@ -204,26 +204,26 @@ const ShopNavbar = () => {
   const { status } = useSession();
   const { shop } = useAppSelector((state) => state.shop);
   const [drawerOpen, setDrawerOpen] = useState(false);
-  
-  const items = useAppSelector((state) => shop ? getShopCart(state, shop._id) : []);
 
-  if(!shop) return null
-  
+  const items = useAppSelector((state) => getShopCart(state, shop?._id));
+
+  if (!shop) return null;
+
   return (
-    <AppBar position='sticky' elevation={1}>
+    <AppBar position="sticky" elevation={1}>
       <StyledToolbar>
         <Box display={{ xs: 'block', sm: 'none' }}>
           <IconButton
             onClick={() => setDrawerOpen(true)}
             sx={{ alignItems: 'center' }}
-            aria-label='Open navigation menu'
+            aria-label="Open navigation menu"
           >
             <MenuIcon />
           </IconButton>
         </Box>
         <DrawerComponent open={drawerOpen} setOpen={setDrawerOpen} />
         <Typography
-          variant='h2'
+          variant="h2"
           component={Link}
           href={generateURL(shop.subdomain)}
           mx={{ xs: 'auto', sm: 0 }}
@@ -239,21 +239,21 @@ const ShopNavbar = () => {
         </Stack>
         {status === 'authenticated' ? (
           <Stack direction={'row'} alignItems={'center'}>
-            <IconButton color='inherit'>
+            <IconButton color="inherit">
               <SearchIcon />
             </IconButton>
             <Box display={{ xs: 'none', sm: 'block' }}>
               <Avatar
                 sx={{ width: 24, height: 24, cursor: 'pointer' }}
-                alt='User avatar'
+                alt="User avatar"
               />
             </Box>
             <IconButton
-              color='inherit'
+              color="inherit"
               LinkComponent={Link}
               href={`${generateURL(shop.subdomain)}/cart`}
             >
-              <Badge badgeContent={items.length} color='secondary'>
+              <Badge badgeContent={items.length} color="secondary">
                 <ShoppingCartOutlined />
               </Badge>
             </IconButton>
@@ -261,19 +261,19 @@ const ShopNavbar = () => {
         ) : (
           <Stack direction={'row'} gap={2}>
             <Button
-              size='small'
-              variant='contained'
+              size="small"
+              variant="contained"
               LinkComponent={Link}
-              href='/login'
+              href="/login"
             >
               Login
             </Button>
             <Box display={{ xs: 'none', sm: 'block' }}>
               <Button
-                size='small'
-                variant='outlined'
+                size="small"
+                variant="outlined"
                 LinkComponent={Link}
-                href='/register'
+                href="/register"
               >
                 Sign up
               </Button>

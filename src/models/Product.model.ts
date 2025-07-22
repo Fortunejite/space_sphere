@@ -1,8 +1,9 @@
-import { InferSchemaType, Schema, Types, model, models } from 'mongoose';
+import { Schema, Types, model, models } from 'mongoose';
+import slugify from 'slugify';
 
 const variantSchema = new Schema(
   {
-    attributes: Schema.Types.Mixed, // e.g. { size: 'M', color: 'red' }
+    attributes: { type: Map, of: String }, // e.g. { size: 'M', color: 'red' }
     isDefault: { type: Boolean, default: false },
   },
   { _id: false },
@@ -86,23 +87,67 @@ const productSchema = new Schema(
   },
   {
     timestamps: true,
-    toJSON: { virtuals: true },
-    toObject: { virtuals: true },
   },
 );
 
 // compound index to enforce unique slug per shop
 productSchema.index({ shopId: 1, slug: 1 }, { unique: true });
 
+productSchema.pre('validate', async function (next) {
+  if (this.isModified('name') || !this.slug)
+    this.slug = slugify(this.name, { lower: true, strict: true });
+  next();
+});
+
 productSchema.path('saleEnd').validate(function (value: Date) {
   if (!value || !this.saleStart) return true;
   return this.saleStart < value;
 }, '`saleEnd` must be after `saleStart`');
 
-export type InferredProduct = InferSchemaType<typeof productSchema>;
-export type IProduct = {
-  _id: Types.ObjectId;
-} & InferredProduct;
+type InferredFields = {
+  shopId: Types.ObjectId;
+  name: string;
+  slug: string;
+  description?: string;
+  categories: Types.ObjectId[];
+  tags: string[];
+  variants: Array<{
+    attributes: Map<string, string>;
+    isDefault: boolean;
+  }>;
+  price: number;
+  currency: string;
+  stock: number;
+  weight?: number;
+  dimensions?: {
+    length?: number;
+    width?: number;
+    height?: number;
+  };
+  shippingClass?: string;
+  taxClass?: string;
+  discount: number;
+  saleStart?: Date;
+  saleEnd?: Date;
+  mainPic: string;
+  thumbnails: string[];
+  isFeatured: boolean;
+  status: 'draft' | 'active' | 'archived';
+  isDeleted: boolean;
+  deletedAt?: Date;
+  reviews: Array<{
+    user: Types.ObjectId;
+    rating: number;
+    comment?: string;
+    createdAt: Date;
+  }>;
+  createdAt: Date;
+  updatedAt: Date;
+};
+export type IProduct = InferredFields & { _id: Types.ObjectId };
+
+const some: IProduct = {} as IProduct
+some.name = ''
 
 const Product = models.Product || model('Product', productSchema);
 export default Product;

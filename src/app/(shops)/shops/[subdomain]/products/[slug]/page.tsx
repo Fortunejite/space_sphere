@@ -30,8 +30,8 @@ import { ICategory } from '@/models/Category.model';
 import { IProduct } from '@/models/Product.model';
 import { IUser } from '@/models/User.model';
 
-interface CustomProduct
-  extends Omit<IProduct, 'categories' | 'reviews' | '_id'> {
+type CustomProduct
+  = Omit<IProduct, 'categories' | 'reviews' | '_id'> & {
   _id: string;
   categories: ICategory[];
   reviews: {
@@ -155,7 +155,7 @@ const ProductDetailsPage = () => {
       <Breadcrumbs>
         <Link href={generateURL(shop.subdomain)}>Home</Link>
         <Link href={`${generateURL(shop.subdomain)}/products`}>Products</Link>
-        <Typography>{product.name}</Typography>
+        <Typography>{String(product.name)}</Typography>
       </Breadcrumbs>
 
       <Grid container spacing={2}>
@@ -357,7 +357,7 @@ const ProductDetailsPage = () => {
                       <Stack direction='row' alignItems='center' gap={1}>
                         <Avatar sx={{ width: 24, height: 24 }} />
                         <Typography variant='body2'>
-                          {review.user.username}
+                          {review.user?.username}
                         </Typography>
                       </Stack>
                       <Typography variant='body2'>

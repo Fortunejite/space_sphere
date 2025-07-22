@@ -5,6 +5,7 @@ import { styled, Box, Stack, Typography, Grid, Paper } from '@mui/material';
 
 import { formatNumber, generateURL } from '@/lib/utils';
 import { IProduct } from '@/models/Product.model';
+import { IShop } from '@/models/Shop.model';
 
 interface ViewsProps {
   products: IProduct[];

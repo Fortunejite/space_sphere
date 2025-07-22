@@ -350,7 +350,7 @@ const ProductDetailsPage = () => {
               </Grid>
             </Grid>
 
-            {/* <Typography variant='body1'>Reviews</Typography>
+            <Typography variant='body1'>Reviews</Typography>
             <Stack spacing={1}>
               {product.reviews.length > 0 ? (
                 product.reviews.map((review, idx) => (
@@ -378,7 +378,7 @@ const ProductDetailsPage = () => {
                   No reviews yet.
                 </Typography>
               )}
-            </Stack> */}
+            </Stack>
           </Stack>
         </Grid>
       </Grid>

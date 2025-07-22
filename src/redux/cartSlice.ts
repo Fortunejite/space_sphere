@@ -187,9 +187,9 @@ export const selectInCart = (
   );
 };
 
-export const getShopCart = (state: { cart: IInitialState }, shopId: string) => {
+export const getShopCart = (state: { cart: IInitialState }, shopId: string | undefined) => {
   const cart = state.cart.cart;
-  if (!cart) return [];
+  if (!cart || !shopId) return [];
   return (
     cart.shops.find((s) => s.shopId._id.toString() === shopId)?.items || []
   );

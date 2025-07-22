@@ -24,7 +24,7 @@ export default function HomeLayout({
     }
   }, [dispatch, subdomain]);
 
-  if (status === 'loading') return <div>Loading ...</div>;
+  if (status === 'loading') return null;
 
   if (status === 'failed') return notFound();
 
