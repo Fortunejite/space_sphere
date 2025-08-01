@@ -74,7 +74,7 @@ const LoginPage = () => {
       return;
     }
 
-    router.push(params.get('callback') || '/');
+    router.replace(params.get('callback') || '/');
   };
 
   return (

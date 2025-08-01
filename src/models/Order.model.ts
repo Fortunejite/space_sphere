@@ -5,6 +5,12 @@ const generateTrackingId = () =>
 
 const orderSchema = new Schema(
   {
+    shop: {
+      type: Types.ObjectId,
+      ref: 'Shop',
+      required: true,
+      index: true, // for tenant isolation queries
+    },
     user: {
       type: Types.ObjectId,
       ref: 'User',
@@ -22,6 +28,7 @@ const orderSchema = new Schema(
           required: true,
         },
         quantity: { type: Number, required: true },
+        variantIndex: { type: Number },
         price: { type: Number, required: true },
       },
     ],

@@ -280,7 +280,7 @@ const ProductDetailsPage = () => {
                 sx={{ width: '30%' }}
                 LinkComponent={Link}
                 href={generateURL(
-                  (product.shopId as { subdomain: string })?.subdomain,
+                  (product.shopId as unknown as { subdomain: string })?.subdomain,
                 )}
               >
                 Visit Shop

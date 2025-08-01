@@ -60,7 +60,7 @@ const RegisterPage = () => {
 
     try {
       await axios.post('/api/auth/register', formData);
-      router.push('/');
+      router.replace('/');
     } catch (err) {
       console.error(err);
       // If error is an AxiosError, try to extract form errors from the API response.

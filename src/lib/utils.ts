@@ -1,6 +1,9 @@
 import { IProduct } from '@/models/Product.model';
 
-export const generateURL = (subdomain: string) => {
+export const generateURL = (subdomain?: string) => {
+  if (!subdomain) {
+    return '/';
+  }
   if (process.env.NODE_ENV === 'development') {
     return `/shops/${subdomain}`;
   }
@@ -27,7 +30,7 @@ export const calculateCartTotal = (
   items.reduce((acc, curr) => {
     const amount =
       curr.productId.discount > 0
-        ? (curr.productId.discount / 100) * curr.productId.price
+        ? curr.productId.price - ((curr.productId.discount / 100) * curr.productId.price)
         : curr.productId.price;
     return acc + curr.quantity * amount;
   }, 0);
