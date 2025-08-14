@@ -1,24 +1,25 @@
 import { NextResponse } from 'next/server';
 import { ObjectId } from 'mongodb';
 
-import { requireAuth } from '@/lib/utils';
+import { generateTrackingId, requireAuth } from '@/lib/utils';
 
 import { errorHandler } from '@/lib/errorHandler';
 import { orderSchema } from '@/lib/schema/order';
 import { calculateCartTotal, formatNumber } from '@/lib/utils';
 
-import Cart, { ICart } from '@/models/Cart.model';
+import Cart from '@/models/Cart.model';
 import Order from '@/models/Order.model';
 import '@/models/Product.model';
 import dbConnect from '@/lib/mongodb';
+import { getShopBySubdomain } from '@/lib/shop';
+import { CartWithItems } from '@/types/cart';
 
-const generateTrackingId = () =>
-  Math.floor(100000000 * Math.random() * 9000000000);
+await dbConnect();
 
-export const GET = errorHandler(async (request) => {
+export const GET = errorHandler(async (request, { params }) => {
   await dbConnect();
+  const { subdomain } = await params;
   const { searchParams } = new URL(request.url);
-  const shopId = searchParams.get('shopId');
   const fetchOrderStatus = searchParams.get('status') === 'true';
 
   // Pagination
@@ -26,27 +27,35 @@ export const GET = errorHandler(async (request) => {
   const limit = Number(searchParams.get('limit')) || 10;
   const skip = (page - 1) * limit;
 
-  if (!shopId) {
-    throw Object.assign(new Error('Shop ID param is required'), {
+  if (!subdomain) {
+    throw Object.assign(new Error('Shop Subdomain param is required'), {
       status: 400,
     });
   }
+  const shop = await getShopBySubdomain(subdomain);
   const user = await requireAuth();
 
-  const orders = await Order.find({ shop: shopId, user: user._id })
+  const orders = await Order.find({ shop: shop._id, user: user._id })
     .skip(skip)
     .limit(limit)
     .sort({ createdAt: -1 })
     .populate('cartItems.product');
 
-  const totalOrders = await Order.countDocuments({ shop: shopId, user: user._id });
+  const totalOrders = await Order.countDocuments({
+    shop: shop._id,
+    user: user._id,
+  });
 
   if (!fetchOrderStatus) {
-    return NextResponse.json({ success: true, data: orders, total: totalOrders });
+    return NextResponse.json({
+      success: true,
+      data: orders,
+      total: totalOrders,
+    });
   }
 
   const statsPromise = Order.aggregate([
-    { $match: { shop: new ObjectId(shopId), user: new ObjectId(user._id) } },
+    { $match: { shop: new ObjectId(shop._id), user: new ObjectId(user._id) } },
     {
       $group: {
         _id: '$status',
@@ -55,32 +64,44 @@ export const GET = errorHandler(async (request) => {
     },
   ]);
 
-  const stats = (await statsPromise).reduce((acc: any, stat: any) => {
-    acc[stat._id] = stat.count;
-    return acc;
-  }, {});
+  const stats = (await statsPromise).reduce(
+    (acc: { [key: string]: number }, stat: { _id: string; count: number }) => {
+      acc[stat._id] = stat.count;
+      return acc;
+    },
+    {},
+  );
   stats.total = totalOrders;
 
-  return NextResponse.json({ success: true, data: orders, total: totalOrders, stats });
+  return NextResponse.json({
+    success: true,
+    data: orders,
+    total: totalOrders,
+    stats,
+  });
 });
 
-export const POST = errorHandler(async (request) => {
+export const POST = errorHandler(async (request, { params }) => {
   const user = await requireAuth();
-
-  const { shopId, paymentMethod, paymentReference, ...body } =
-    await request.json();
-  if (!shopId) {
-    throw Object.assign(new Error('Shop ID param is required'), {
+  const { subdomain } = await params;
+  if (!subdomain) {
+    throw Object.assign(new Error('Shop Subdomain param is required'), {
       status: 400,
     });
   }
+
+  const { paymentMethod, paymentReference, ...body } =
+    await request.json();
+  
+  const shop = await getShopBySubdomain(subdomain);
   const { note, ...shipmentInfo } = orderSchema.parse(body);
 
-  const userCart: ICart | null = await Cart.findOne({
+  const userCart = await Cart.findOne({
     user: user._id,
-  }).populate('shops.items.productId');
+  }).populate('shops.items.productId') as CartWithItems;
+
   const shopCart = userCart?.shops.find(
-    (shop) => shop.shopId.toString() === shopId,
+    (targetShop) => targetShop.shopId === shop._id.toString(),
   );
 
   if (!shopCart) {
@@ -90,18 +111,18 @@ export const POST = errorHandler(async (request) => {
   }
 
   const cartItems = shopCart.items.map((item) => ({
-    product: (item.productId as { _id: string })._id,
+    product: item.productId._id,
     quantity: item.quantity,
     variantIndex: item.variantIndex,
-    price: formatNumber((item.productId as { price: number }).price.toFixed(0)),
+    price: formatNumber(item.productId.price.toFixed(0)),
   }));
 
   const totalAmount = formatNumber(
-    calculateCartTotal(shopCart.items as any[]).toFixed(0),
+    calculateCartTotal(shopCart.items).toFixed(0),
   );
 
   const payload = {
-    shop: shopId,
+    shop: shop._id,
     user: user._id,
     trackingId: generateTrackingId(),
     cartItems,
@@ -117,8 +138,8 @@ export const POST = errorHandler(async (request) => {
 
   // Remove the shop from the user's cart after order creation
   await Cart.updateOne(
-    { user: user._id, 'shops.shopId': shopId },
-    { $pull: { shops: { shopId } } },
+    { user: user._id, 'shops.shopId': shop._id },
+    { $pull: { shops: { shopId: shop._id } } },
   );
   await order.populate('cartItems.product');
   return NextResponse.json({ success: true, ...payload });

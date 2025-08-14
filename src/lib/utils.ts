@@ -1,4 +1,5 @@
-import { IProduct } from '@/models/Product.model';
+import { auth } from '@/auth';
+import { ItemInCart } from '@/types/cart';
 
 export const generateURL = (subdomain?: string) => {
   if (!subdomain) {
@@ -21,11 +22,7 @@ export const formatNumber = (number: number | string) => {
 };
 
 export const calculateCartTotal = (
-  items: {
-    productId: IProduct;
-    quantity: number;
-    variantIndex: number;
-  }[],
+  items: ItemInCart[],
 ) =>
   items.reduce((acc, curr) => {
     const amount =
@@ -34,3 +31,14 @@ export const calculateCartTotal = (
         : curr.productId.price;
     return acc + curr.quantity * amount;
   }, 0);
+
+export async function requireAuth() {
+  const session = await auth();
+  if (!session) {
+    throw Object.assign(new Error('Unauthorized'), { status: 401 });
+  }
+  return session.user;
+}
+
+export const generateTrackingId = () =>
+  Math.floor(100000000 * Math.random() * 9000000000);

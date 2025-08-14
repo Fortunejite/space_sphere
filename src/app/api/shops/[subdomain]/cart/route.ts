@@ -1,18 +1,26 @@
 import { NextResponse } from 'next/server';
+import { requireAuth } from '@/lib/utils';
+
 import dbConnect from '@/lib/mongodb';
 import { errorHandler } from '@/lib/errorHandler';
 import Cart from '@/models/Cart.model';
 import '@/models/Product.model';
 import '@/models/Shop.model';
-import { requireAuth } from '@/lib/utils';
+import { getShopBySubdomain } from '@/lib/shop';
 
 await dbConnect();
 
-export const GET = errorHandler(async () => {
+export const GET = errorHandler(async (_, { params }) => {
   const user = await requireAuth();
-  // Use lean() if you don't need full mongoose documents
+  const { subdomain } = await params;
+  if (!subdomain) {
+    throw Object.assign(new Error('Shop Subdomain param is required'), {
+      status: 400,
+    });
+  }
+  const shop = await getShopBySubdomain(subdomain);
   const cart = await Cart.findOneAndUpdate(
-    { user: user._id },
+    { user: user._id, 'shops.shopId': shop._id },
     {},
     { upsert: true, new: true, setDefaultsOnInsert: true }
   )
@@ -23,14 +31,16 @@ export const GET = errorHandler(async () => {
   return NextResponse.json(cart);
 });
 
-export const POST = errorHandler(async (request) => {
+export const POST = errorHandler(async (request, { params }) => {
   const user = await requireAuth();
-
-  const url = new URL(request.url);
-  const shopId = url.searchParams.get('shopId');
-  if (!shopId) {
-    throw Object.assign(new Error('Shop ID param is required'), { status: 400 });
+  const { subdomain } = await params;
+  if (!subdomain) {
+    throw Object.assign(new Error('Shop Subdomain param is required'), {
+      status: 400,
+    });
   }
+  const shop = await getShopBySubdomain(subdomain);
+  const shopId = shop._id;
 
   const { productId, variantIndex } = await request.json();
   if (!productId) {

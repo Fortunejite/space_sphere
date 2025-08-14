@@ -1,26 +1,27 @@
 import { NextResponse } from 'next/server';
+import { requireAuth } from '@/lib/utils';
+
 import dbConnect from '@/lib/mongodb';
 import { errorHandler } from '@/lib/errorHandler';
 import Cart from '@/models/Cart.model';
 import '@/models/Product.model';
 import '@/models/Shop.model';
-import { requireAuth } from '@/lib/utils';
+import { getShopBySubdomain } from '@/lib/shop';
 
 // ensure we’re connected once
 await dbConnect();
 
 export const PATCH = errorHandler(async (request, { params }) => {
   const user = await requireAuth();
-  const { id } = await params;
-
-  const url = new URL(request.url);
-  const shopId = url.searchParams.get('shopId');
-  if (!shopId) {
+  const { id, subdomain } = await params;
+  if (!id || !subdomain) {
     return NextResponse.json(
-      { message: 'shopId query param required' },
+      { message: 'Product ID and Shop Subdomain are required' },
       { status: 400 },
     );
   }
+
+  const shop = await getShopBySubdomain(subdomain);
 
   const { quantity, variantIndex } = await request.json();
   if (quantity == null && variantIndex == null) {
@@ -31,7 +32,7 @@ export const PATCH = errorHandler(async (request, { params }) => {
   const updatedCart = await Cart.findOneAndUpdate(
     {
       user: user._id,
-      'shops.shopId': shopId,
+      'shops.shopId': shop._id,
       'shops.items.productId': id,
     },
     {
@@ -44,7 +45,7 @@ export const PATCH = errorHandler(async (request, { params }) => {
     },
     {
       new: true,
-      arrayFilters: [{ 'shop.shopId': shopId }, { 'item.productId': id }],
+      arrayFilters: [{ 'shop.shopId': shop._id }, { 'item.productId': id }],
     },
   )
     .populate('shops.shopId')
@@ -63,22 +64,21 @@ export const PATCH = errorHandler(async (request, { params }) => {
 
 export const POST = errorHandler(async (request, { params }) => {
   const user = await requireAuth();
-  const { id } = await params;
-
-  const url = new URL(request.url);
-  const shopId = url.searchParams.get('shopId');
-  if (!shopId) {
+  const { id, subdomain } = await params;
+  if (!id || !subdomain) {
     return NextResponse.json(
-      { message: 'shopId query param required' },
+      { message: 'Product ID and Shop Subdomain are required' },
       { status: 400 },
     );
   }
+
+  const shop = await getShopBySubdomain(subdomain);
 
   const { quantity, variantIndex } = await request.json();
 
   const existingProduct = await Cart.findOne({
     user: user._id,
-    'shops.shopId': shopId,
+    'shops.shopId': shop._id,
     'shops.items.productId': id,
   });
 
@@ -98,14 +98,14 @@ export const POST = errorHandler(async (request, { params }) => {
   const updatedCart = await Cart.findOneAndUpdate(
     {
       user: user._id,
-      'shops.shopId': shopId,
+      'shops.shopId': shop._id,
     },
     {
       $push: { 'shops.$[shop].items': newItem },
     },
     {
       new: true,
-      arrayFilters: [{ 'shop.shopId': shopId }],
+      arrayFilters: [{ 'shop.shopId': shop._id }],
     },
   )
     .populate('shops.shopId')
@@ -128,27 +128,26 @@ export const POST = errorHandler(async (request, { params }) => {
  */
 export const DELETE = errorHandler(async (_request, { params }) => {
   const user = await requireAuth();
-  const { id } = await params;
-
-  const url = new URL(_request.url);
-  const shopId = url.searchParams.get('shopId');
-  if (!shopId) {
+  const { id, subdomain } = await params;
+  if (!id || !subdomain) {
     return NextResponse.json(
-      { message: 'shopId query param required' },
+      { message: 'Product ID and Shop Subdomain are required' },
       { status: 400 },
     );
   }
 
+  const shop = await getShopBySubdomain(subdomain);
+
   // 1) pull out the item from that shop
   await Cart.updateOne(
-    { user: user._id, 'shops.shopId': shopId },
+    { user: user._id, 'shops.shopId': shop._id },
     { $pull: { 'shops.$.items': { productId: id } } },
   );
 
   // 2) if that shop now has no items, pull the shop entirely
   await Cart.updateOne(
     { user: user._id },
-    { $pull: { shops: { shopId, items: { $size: 0 } } } },
+    { $pull: { shops: { shopId: shop._id, items: { $size: 0 } } } },
   );
 
   // 3) return the fresh cart
