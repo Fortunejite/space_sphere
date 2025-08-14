@@ -35,7 +35,7 @@ const Providers = ({
     <Provider store={store}>
       <LoadReduxState />
       <SessionProvider>
-        <ThemeProvider theme={theme('dark')}>
+        <ThemeProvider theme={theme('light')}>
           <CssBaseline />
           <SnackbarProvider>
             {/* <Navbar mode={mode} setMode={setMode} /> */}

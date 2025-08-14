@@ -38,7 +38,7 @@ const orderSchema = new Schema(
     },
     status: {
       type: String,
-      enum: ['processing', 'shipped', 'delivered', 'canceled'],
+      enum: ['processing', 'shipped', 'delivered', 'cancelled'],
       default: 'processing',
     },
     paymentMethod: {
@@ -72,7 +72,15 @@ const orderSchema = new Schema(
     },
     note: {
       type: String,
-    }
+    },
+    estimatedDelivery: {
+      type: Date,
+      // required: [true, 'Estimated delivery date is required'],
+    },
+    actualDelivery: {
+      type: Date,
+      // required: [true, 'Actual delivery date is required'],
+    },
   },
   { timestamps: true },
 );

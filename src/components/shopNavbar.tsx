@@ -25,6 +25,7 @@ import {
   KeyboardArrowRight,
   ArrowBack as ArrowBackIcon,
   Search as SearchIcon,
+  SupervisedUserCircle,
 } from '@mui/icons-material';
 import { useSession } from 'next-auth/react';
 import Link from 'next/link';
@@ -203,6 +204,7 @@ const DrawerComponent = ({ open, setOpen }: DrawerProps) => {
 const ShopNavbar = () => {
   const { status } = useSession();
   const { shop } = useAppSelector((state) => state.shop);
+  const { data: session } = useSession();
   const [drawerOpen, setDrawerOpen] = useState(false);
 
   const items = useAppSelector((state) => getShopCart(state, shop?._id));
@@ -231,8 +233,8 @@ const ShopNavbar = () => {
           {shop.name}
         </Typography>
         <Stack direction={'row'} gap={2} display={{ xs: 'none', sm: 'flex' }}>
-          {Links.map((link) => (
-            <Box key={link.url}>
+          {Links.map((link, index) => (
+            <Box key={index}>
               <Link href={link.url}>{link.name}</Link>
             </Box>
           ))}
@@ -248,6 +250,15 @@ const ShopNavbar = () => {
                 alt="User avatar"
               />
             </Box>
+            {shop.ownerId.toString() === session?.user?._id && (
+              <IconButton
+                color="inherit"
+                LinkComponent={Link}
+                href={`${generateURL(shop.subdomain)}/admin`}
+              >
+                <SupervisedUserCircle />
+              </IconButton>
+            )}
             <IconButton
               color="inherit"
               LinkComponent={Link}
