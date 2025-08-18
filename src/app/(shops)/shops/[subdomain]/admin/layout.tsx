@@ -41,6 +41,7 @@ import {
 import { useState, ReactNode } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 import { useAppSelector } from '@/hooks/redux.hook';
+import { useSession } from 'next-auth/react';
 
 const DRAWER_WIDTH = 280;
 
@@ -94,9 +95,20 @@ const AdminLayout = ({ children }: AdminLayoutProps) => {
   const router = useRouter();
   const pathname = usePathname();
   const { shop } = useAppSelector((state) => state.shop);
-  
+  const { data: session } = useSession();
+  const user = session?.user;
   const [mobileOpen, setMobileOpen] = useState(false);
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
+
+  if (!shop || !user) {
+    return null; // Prevent rendering if shop or user data is not available
+  }
+
+  if (shop.ownerId !== user._id) {
+    // If the user's shop ID doesn't match the shop in the URL, redirect or show an error
+    router.replace(`/shops/${shop?.subdomain}`);
+    return null; // Prevent rendering the layout if user is not authorized
+  }
 
   const handleDrawerToggle = () => {
     setMobileOpen(!mobileOpen);

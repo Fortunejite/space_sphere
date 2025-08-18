@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { requireAuth } from '@/lib/utils';
+import { requireAuth } from '@/lib/apiAuth';
 
 import dbConnect from '@/lib/mongodb';
 import { errorHandler } from '@/lib/errorHandler';

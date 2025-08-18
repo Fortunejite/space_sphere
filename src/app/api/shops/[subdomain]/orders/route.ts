@@ -1,11 +1,12 @@
 import { NextResponse } from 'next/server';
 import { ObjectId } from 'mongodb';
 
-import { generateTrackingId, requireAuth } from '@/lib/utils';
+import { generateTrackingId } from '@/lib/utils';
+import { requireAuth } from '@/lib/apiAuth';
 
 import { errorHandler } from '@/lib/errorHandler';
 import { orderSchema } from '@/lib/schema/order';
-import { calculateCartTotal, formatNumber } from '@/lib/utils';
+import { calculateCartTotal } from '@/lib/utils';
 
 import Cart from '@/models/Cart.model';
 import Order from '@/models/Order.model';
@@ -13,6 +14,7 @@ import '@/models/Product.model';
 import dbConnect from '@/lib/mongodb';
 import { getShopBySubdomain } from '@/lib/shop';
 import { CartWithItems } from '@/types/cart';
+import { updateShopStats } from '@/models/ShopStats.model';
 
 await dbConnect();
 
@@ -90,18 +92,17 @@ export const POST = errorHandler(async (request, { params }) => {
     });
   }
 
-  const { paymentMethod, paymentReference, ...body } =
-    await request.json();
-  
+  const { paymentMethod, paymentReference, ...body } = await request.json();
+
   const shop = await getShopBySubdomain(subdomain);
   const { note, ...shipmentInfo } = orderSchema.parse(body);
 
-  const userCart = await Cart.findOne({
+  const userCart = (await Cart.findOne({
     user: user._id,
-  }).populate('shops.items.productId') as CartWithItems;
+  }).populate('shops.items.productId')) as CartWithItems;
 
   const shopCart = userCart?.shops.find(
-    (targetShop) => targetShop.shopId === shop._id.toString(),
+    (targetShop) => targetShop.shopId.toString() === shop._id.toString(),
   );
 
   if (!shopCart) {
@@ -114,12 +115,10 @@ export const POST = errorHandler(async (request, { params }) => {
     product: item.productId._id,
     quantity: item.quantity,
     variantIndex: item.variantIndex,
-    price: formatNumber(item.productId.price.toFixed(0)),
+    price: item.productId.price,
   }));
 
-  const totalAmount = formatNumber(
-    calculateCartTotal(shopCart.items).toFixed(0),
-  );
+  const totalAmount = Number(calculateCartTotal(shopCart.items).toFixed(0))
 
   const payload = {
     shop: shop._id,
@@ -135,6 +134,17 @@ export const POST = errorHandler(async (request, { params }) => {
 
   const order = new Order(payload);
   await order.save();
+  const todayKey = new Date().toISOString().slice(0, 10);
+
+  // Update the shop's order count
+  const stats = {
+    totalOrders: 1,
+    pendingOrders: 1,
+    revenueCents: totalAmount * 100,
+    [`daily.${todayKey}.orders`]: 1,
+    [`daily.${todayKey}.revenueCents`]: totalAmount * 100,
+  };
+  await updateShopStats(shop._id, stats);
 
   // Remove the shop from the user's cart after order creation
   await Cart.updateOne(

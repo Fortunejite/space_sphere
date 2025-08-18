@@ -36,10 +36,6 @@ import {
 import {
   EditOutlined,
   CameraAltOutlined,
-  LocationOnOutlined,
-  EmailOutlined,
-  PhoneOutlined,
-  CalendarTodayOutlined,
   ShoppingBagOutlined,
   FavoriteOutlined,
   StarOutlined,
@@ -47,20 +43,22 @@ import {
   DeleteOutlined,
   SecurityOutlined,
   NotificationsOutlined,
-  LogoutOutlined,
   VerifiedUserOutlined,
   TrendingUpOutlined,
   LocalShippingOutlined,
   PaymentOutlined
 } from '@mui/icons-material';
 import { useState } from 'react';
-import { formatNumber } from '@/lib/utils';
+import { formatCurrency } from '@/lib/currency';
+import { useAppSelector } from '@/hooks/redux.hook';
 
 interface TabPanelProps {
   children?: React.ReactNode;
   index: number;
   value: number;
 }
+
+type Status = "default" | "error" | "success" | "warning" | "info"
 
 function TabPanel(props: TabPanelProps) {
   const { children, value, index, ...other } = props;
@@ -80,6 +78,7 @@ function TabPanel(props: TabPanelProps) {
 
 const ProfilePage = () => {
   const theme = useTheme();
+  const shop = useAppSelector((state) => state.shop.shop);
   const isMobile = useMediaQuery((theme: Theme) => theme.breakpoints.down('md'));
   const [activeTab, setActiveTab] = useState(0);
   const [editMode, setEditMode] = useState(false);
@@ -261,7 +260,7 @@ const ProfilePage = () => {
                   </Stack>
                   <Stack alignItems="center">
                     <Typography variant="h6" fontWeight="bold" color="primary.main">
-                      ₦{formatNumber(stats.totalSpent.toFixed(0))}
+                      {formatCurrency(stats.totalSpent, shop?.currency)}
                     </Typography>
                     <Typography variant="caption" color="text.secondary">
                       Total Spent
@@ -322,12 +321,12 @@ const ProfilePage = () => {
             <Box p={3}>
               <Grid container spacing={3}>
                 {/* Quick Stats */}
-                <Grid item xs={12}>
+                <Grid size={12}>
                   <Typography variant="h6" gutterBottom fontWeight="bold">
                     Account Overview
                   </Typography>
                   <Grid container spacing={2}>
-                    <Grid item xs={6} sm={3}>
+                    <Grid size={{ xs: 6, sm: 3 }}>
                       <Paper sx={{ p: 2, textAlign: 'center', bgcolor: alpha(theme.palette.primary.main, 0.05) }}>
                         <ShoppingBagOutlined color="primary" sx={{ fontSize: 32, mb: 1 }} />
                         <Typography variant="h5" fontWeight="bold">
@@ -338,18 +337,18 @@ const ProfilePage = () => {
                         </Typography>
                       </Paper>
                     </Grid>
-                    <Grid item xs={6} sm={3}>
+                    <Grid size={{ xs: 6, sm: 3 }}>
                       <Paper sx={{ p: 2, textAlign: 'center', bgcolor: alpha(theme.palette.success.main, 0.05) }}>
                         <PaymentOutlined color="success" sx={{ fontSize: 32, mb: 1 }} />
                         <Typography variant="h5" fontWeight="bold">
-                          ₦{formatNumber((stats.totalSpent / 1000).toFixed(0))}K
+                          ₦{formatCurrency((stats.totalSpent / 1000), shop?.currency)}K
                         </Typography>
                         <Typography variant="body2" color="text.secondary">
                           Total Spent
                         </Typography>
                       </Paper>
                     </Grid>
-                    <Grid item xs={6} sm={3}>
+                    <Grid size={{ xs: 6, sm: 3 }}>
                       <Paper sx={{ p: 2, textAlign: 'center', bgcolor: alpha(theme.palette.error.main, 0.05) }}>
                         <FavoriteOutlined color="error" sx={{ fontSize: 32, mb: 1 }} />
                         <Typography variant="h5" fontWeight="bold">
@@ -360,7 +359,7 @@ const ProfilePage = () => {
                         </Typography>
                       </Paper>
                     </Grid>
-                    <Grid item xs={6} sm={3}>
+                    <Grid size={{ xs: 6, sm: 3 }}>
                       <Paper sx={{ p: 2, textAlign: 'center', bgcolor: alpha(theme.palette.warning.main, 0.05) }}>
                         <StarOutlined color="warning" sx={{ fontSize: 32, mb: 1 }} />
                         <Typography variant="h5" fontWeight="bold">
@@ -375,7 +374,7 @@ const ProfilePage = () => {
                 </Grid>
 
                 {/* Recent Activity */}
-                <Grid item xs={12} md={8}>
+                <Grid size={{ xs: 12, md: 8 }}>
                   <Typography variant="h6" gutterBottom fontWeight="bold">
                     Recent Orders
                   </Typography>
@@ -396,7 +395,7 @@ const ProfilePage = () => {
                               <Chip
                                 label={order.status}
                                 size="small"
-                                color={getStatusColor(order.status) as any}
+                                color={getStatusColor(order.status) as Status}
                                 variant="outlined"
                               />
                             </Stack>
@@ -414,7 +413,7 @@ const ProfilePage = () => {
                         />
                         <ListItemSecondaryAction>
                           <Typography variant="h6" fontWeight="bold">
-                            ₦{formatNumber(order.total.toFixed(0))}
+                            {formatCurrency(order.total, shop?.currency)}
                           </Typography>
                         </ListItemSecondaryAction>
                       </ListItem>
@@ -426,7 +425,7 @@ const ProfilePage = () => {
                 </Grid>
 
                 {/* Loyalty Points */}
-                <Grid item xs={12} md={4}>
+                <Grid size={{ xs: 12, md: 4 }}>
                   <Paper sx={{ p: 3, bgcolor: alpha(theme.palette.primary.main, 0.05), height: 'fit-content' }}>
                     <Stack alignItems="center" spacing={2}>
                       <Avatar sx={{ bgcolor: 'primary.main', width: 60, height: 60 }}>
@@ -482,14 +481,14 @@ const ProfilePage = () => {
                           <Chip
                             label={order.status}
                             size="small"
-                            color={getStatusColor(order.status) as any}
+                            color={getStatusColor(order.status) as Status}
                           />
                         </Stack>
                       }
                       secondary={
                         <Stack spacing={0.5}>
                           <Typography variant="body2">
-                            {order.shop} • {order.items} items • ₦{formatNumber(order.total.toFixed(0))}
+                            {order.shop} • {order.items} items • {formatCurrency(order.total, shop?.currency)}
                           </Typography>
                           <Typography variant="caption" color="text.secondary">
                             Ordered on {order.date}
@@ -523,7 +522,7 @@ const ProfilePage = () => {
               </Typography>
               <Grid container spacing={2}>
                 {wishlistItems.map((item) => (
-                  <Grid item xs={12} sm={6} md={4} key={item.id}>
+                  <Grid size={{ xs: 12, sm: 6, md: 4 }} key={item.id}>
                     <Card>
                       <Box sx={{ position: 'relative' }}>
                         <Box
@@ -568,7 +567,7 @@ const ProfilePage = () => {
                           {item.shop}
                         </Typography>
                         <Typography variant="h6" color="primary.main" fontWeight="bold" mt={1}>
-                          ₦{formatNumber(item.price.toFixed(0))}
+                          {formatCurrency(item.price, shop?.currency)}
                         </Typography>
                         <Stack direction="row" spacing={1} mt={2}>
                           <Button

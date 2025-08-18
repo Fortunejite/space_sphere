@@ -4,10 +4,9 @@ import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 
 import { clientErrorHandler } from '@/lib/errorHandler';
 
-import { IShop } from '@/models/Shop.model';
-import { IUser } from '@/models/User.model';
+import { ShopWithStats } from '@/types/shop';
 
-type CustomShop = IShop & { ownerId: IUser, _id: string };
+type CustomShop = ShopWithStats & { _id: string };
 
 interface IInitialState {
   error: string | null;

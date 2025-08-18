@@ -7,6 +7,7 @@ import { useAppDispatch, useAppSelector } from '@/hooks/redux.hook';
 import { fetchShop } from '@/redux/shopSlice';
 
 import ShopNavbar from '@/components/shopNavbar';
+import { Box, Typography } from '@mui/material';
 
 export default function HomeLayout({
   children,
@@ -16,7 +17,7 @@ export default function HomeLayout({
   const { subdomain } = useParams();
 
   const dispatch = useAppDispatch();
-  const { status } = useAppSelector((s) => s.shop);
+  const { status, shop } = useAppSelector((s) => s.shop);
 
   useEffect(() => {
     if (subdomain) {
@@ -24,9 +25,18 @@ export default function HomeLayout({
     }
   }, [dispatch, subdomain]);
 
-  if (status === 'loading') return null;
-
   if (status === 'failed') return notFound();
+  if (status === 'loading' || !shop) return null;
+
+  if (shop.status === 'suspended' || shop.status === 'banned') {
+    return (
+      <Box sx={{ textAlign: 'center', padding: 4 }}>
+        <Typography variant="h4" color="error">
+          This shop is currently unavailable.
+        </Typography>
+      </Box>
+    );
+  }
 
   return (
     <>

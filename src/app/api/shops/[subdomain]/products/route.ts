@@ -1,14 +1,11 @@
-import slugify from 'slugify';
 import { SortOrder } from 'mongoose';
 import { NextResponse } from 'next/server';
 import Product from '@/models/Product.model';
 import '@/models/Category.model';
 
 import { errorHandler } from '@/lib/errorHandler';
-import { createProductSchema } from '@/lib/schema/product';
 import dbConnect from '@/lib/mongodb';
-import { getShopById, getShopBySubdomain } from '@/lib/shop';
-import { requireAuth } from '@/lib/utils';
+import { getShopBySubdomain } from '@/lib/shop';
 
 export const GET = errorHandler(async (request, { params }) => {
   await dbConnect();
@@ -21,7 +18,7 @@ export const GET = errorHandler(async (request, { params }) => {
       { status: 400 },
     );
   }
-  
+
   const shop = await getShopBySubdomain(subdomain);
 
   // Pagination
@@ -73,26 +70,4 @@ export const GET = errorHandler(async (request, { params }) => {
     .populate('categories');
 
   return NextResponse.json(products);
-});
-
-export const POST = errorHandler(async (request) => {
-  await dbConnect();
-
-  const user = await requireAuth();
-
-  const body = await request.json();
-  const newProduct = createProductSchema.parse(body);
-
-  const shop = await getShopById(newProduct.shopId);
-
-  if (user._id !== shop.ownerId)
-    return NextResponse.json(
-      { message: 'Insufficient Permission' },
-      { status: 403 },
-    );
-
-  const product = new Product(newProduct);
-  product.slug = slugify(product.name);
-  await product.save();
-  return NextResponse.json(product, { status: 201 });
 });

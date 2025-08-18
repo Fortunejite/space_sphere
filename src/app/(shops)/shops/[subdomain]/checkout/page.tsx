@@ -2,7 +2,7 @@
 
 import { useSnackbar } from '@/context/snackbar';
 import { useAppDispatch, useAppSelector } from '@/hooks/redux.hook';
-import { calculateCartTotal, formatNumber, generateURL } from '@/lib/utils';
+import { calculateCartTotal, generateURL } from '@/lib/utils';
 import { fetchCart, getShopCart } from '@/redux/cartSlice';
 import {
   Box,
@@ -34,7 +34,7 @@ import {
   ListItem,
   ListItemText,
   ListItemAvatar,
-  Badge
+  Badge,
 } from '@mui/material';
 import {
   LocalShippingOutlined,
@@ -55,16 +55,20 @@ import {
   EditOutlined,
   ArrowBackOutlined,
   LockOutlined,
-  VerifiedUserOutlined
+  VerifiedUserOutlined,
 } from '@mui/icons-material';
 import axios from 'axios';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { ChangeEvent, useMemo, useState } from 'react';
+import { formatCurrency } from '@/lib/currency';
 
 const CheckoutCard = styled(Card)(({ theme }) => ({
   borderRadius: theme.spacing(2),
-  background: `linear-gradient(135deg, ${alpha(theme.palette.background.paper, 0.9)} 0%, ${alpha(theme.palette.background.paper, 0.95)} 100%)`,
+  background: `linear-gradient(135deg, ${alpha(
+    theme.palette.background.paper,
+    0.9,
+  )} 0%, ${alpha(theme.palette.background.paper, 0.95)} 100%)`,
   backdropFilter: 'blur(20px)',
   border: `1px solid ${alpha(theme.palette.divider, 0.1)}`,
   boxShadow: `0 8px 32px ${alpha(theme.palette.common.black, 0.1)}`,
@@ -81,10 +85,10 @@ const PaymentMethodCard = styled(Card, {
   borderRadius: theme.spacing(1.5),
   cursor: 'pointer',
   transition: 'all 0.2s ease-in-out',
-  border: isSelected 
-    ? `2px solid ${theme.palette.primary.main}` 
+  border: isSelected
+    ? `2px solid ${theme.palette.primary.main}`
     : `2px solid ${alpha(theme.palette.divider, 0.2)}`,
-  background: isSelected 
+  background: isSelected
     ? alpha(theme.palette.primary.main, 0.05)
     : theme.palette.background.paper,
   '&:hover': {
@@ -104,7 +108,9 @@ const CheckoutPage = () => {
   const theme = useTheme();
   const router = useRouter();
   const dispatch = useAppDispatch();
-  const isMobile = useMediaQuery((theme: Theme) => theme.breakpoints.down('md'));
+  const isMobile = useMediaQuery((theme: Theme) =>
+    theme.breakpoints.down('md'),
+  );
   const { shop, status: shopStatus } = useAppSelector((state) => state.shop);
   const items = useAppSelector((state) => getShopCart(state, shop?._id || ''));
   const totalAmount = useMemo(() => calculateCartTotal(items), [items]);
@@ -146,14 +152,14 @@ const CheckoutPage = () => {
 
   const validateStep = (step: number) => {
     const errors: Record<string, string> = {};
-    
+
     if (step === 0) {
       if (!formData.name.trim()) errors.name = 'Name is required';
       if (!formData.email.trim()) errors.email = 'Email is required';
       if (!formData.phone.trim()) errors.phone = 'Phone is required';
       if (!formData.address.trim()) errors.address = 'Address is required';
     }
-    
+
     setFormErrors(errors);
     return Object.keys(errors).length === 0;
   };
@@ -172,12 +178,12 @@ const CheckoutPage = () => {
     try {
       setLoading(true);
       if (!validateStep(0)) return;
-      
-      const res = await axios.post('/api/orders', {
-        ...formData,
-        shopId: shop?._id,
-      });
-      
+
+      const res = await axios.post(
+        `/api/shops/${shop?.subdomain}/orders`,
+        formData,
+      );
+
       setTrackingId(res.data.trackingId);
       setIsSuccess(true);
       dispatch(fetchCart());
@@ -236,14 +242,16 @@ const CheckoutPage = () => {
   // Success Screen
   if (isSuccess && trackingId) {
     return (
-      <Box 
-        display="flex" 
-        justifyContent="center" 
-        alignItems="center" 
+      <Box
+        display="flex"
+        justifyContent="center"
+        alignItems="center"
         minHeight="60vh"
         p={4}
       >
-        <CheckoutCard sx={{ maxWidth: 600, width: '100%', textAlign: 'center' }}>
+        <CheckoutCard
+          sx={{ maxWidth: 600, width: '100%', textAlign: 'center' }}
+        >
           <CardContent sx={{ p: 6 }}>
             <Avatar
               sx={{
@@ -256,16 +264,28 @@ const CheckoutPage = () => {
             >
               <CheckCircleOutlined sx={{ fontSize: 40 }} />
             </Avatar>
-            
-            <Typography variant="h4" gutterBottom color="success.main" fontWeight="bold">
+
+            <Typography
+              variant="h4"
+              gutterBottom
+              color="success.main"
+              fontWeight="bold"
+            >
               Order Placed Successfully!
             </Typography>
-            
+
             <Typography variant="body1" color="text.secondary" mb={3}>
-              Thank you for your purchase. Your order has been confirmed and will be processed shortly.
+              Thank you for your purchase. Your order has been confirmed and
+              will be processed shortly.
             </Typography>
-            
-            <Card sx={{ p: 2, mb: 3, bgcolor: alpha(theme.palette.success.main, 0.1) }}>
+
+            <Card
+              sx={{
+                p: 2,
+                mb: 3,
+                bgcolor: alpha(theme.palette.success.main, 0.1),
+              }}
+            >
               <Stack direction="row" alignItems="center" spacing={2}>
                 <LocalOfferOutlined color="success" />
                 <Box>
@@ -278,7 +298,7 @@ const CheckoutPage = () => {
                 </Box>
               </Stack>
             </Card>
-            
+
             <Stack direction={isMobile ? 'column' : 'row'} spacing={2}>
               <Button
                 variant="contained"
@@ -304,14 +324,22 @@ const CheckoutPage = () => {
     );
   }
 
+  if (!shop) return null;
+
   return (
-    <Box sx={{ bgcolor: alpha(theme.palette.primary.main, 0.02), minHeight: '100vh', py: 4 }}>
+    <Box
+      sx={{
+        bgcolor: alpha(theme.palette.primary.main, 0.02),
+        minHeight: '100vh',
+        py: 4,
+      }}
+    >
       <Box maxWidth="1200px" mx="auto" px={{ xs: 2, sm: 4 }}>
         {/* Header */}
         <Stack direction="row" alignItems="center" spacing={2} mb={4}>
-          <IconButton 
+          <IconButton
             onClick={() => router.back()}
-            sx={{ 
+            sx={{
               bgcolor: 'background.paper',
               border: `1px solid ${alpha(theme.palette.divider, 0.2)}`,
             }}
@@ -338,7 +366,10 @@ const CheckoutPage = () => {
               {/* Progress Stepper */}
               <CheckoutCard>
                 <CardContent>
-                  <Stepper activeStep={activeStep} orientation={isMobile ? "vertical" : "horizontal"}>
+                  <Stepper
+                    activeStep={activeStep}
+                    orientation={isMobile ? 'vertical' : 'horizontal'}
+                  >
                     {steps.map((step, index) => {
                       const StepIcon = step.icon;
                       return (
@@ -349,7 +380,10 @@ const CheckoutPage = () => {
                                 sx={{
                                   width: 40,
                                   height: 40,
-                                  bgcolor: index <= activeStep ? 'primary.main' : 'grey.300',
+                                  bgcolor:
+                                    index <= activeStep
+                                      ? 'primary.main'
+                                      : 'grey.300',
                                   color: 'white',
                                 }}
                               >
@@ -357,10 +391,16 @@ const CheckoutPage = () => {
                               </Avatar>
                             )}
                           >
-                            <Typography 
-                              variant="subtitle1" 
-                              fontWeight={index <= activeStep ? 'bold' : 'normal'}
-                              color={index <= activeStep ? 'primary.main' : 'text.secondary'}
+                            <Typography
+                              variant="subtitle1"
+                              fontWeight={
+                                index <= activeStep ? 'bold' : 'normal'
+                              }
+                              color={
+                                index <= activeStep
+                                  ? 'primary.main'
+                                  : 'text.secondary'
+                              }
                             >
                               {step.label}
                             </Typography>
@@ -376,7 +416,12 @@ const CheckoutPage = () => {
               {activeStep === 0 && (
                 <CheckoutCard>
                   <CardContent>
-                    <Stack direction="row" alignItems="center" spacing={2} mb={3}>
+                    <Stack
+                      direction="row"
+                      alignItems="center"
+                      spacing={2}
+                      mb={3}
+                    >
                       <Avatar sx={{ bgcolor: 'primary.main' }}>
                         <PersonOutlined />
                       </Avatar>
@@ -408,8 +453,11 @@ const CheckoutPage = () => {
                           ),
                         }}
                       />
-                      
-                      <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2}>
+
+                      <Stack
+                        direction={{ xs: 'column', sm: 'row' }}
+                        spacing={2}
+                      >
                         <TextField
                           required
                           fullWidth
@@ -446,7 +494,7 @@ const CheckoutPage = () => {
                           }}
                         />
                       </Stack>
-                      
+
                       <TextField
                         required
                         fullWidth
@@ -466,7 +514,7 @@ const CheckoutPage = () => {
                           ),
                         }}
                       />
-                      
+
                       <TextField
                         fullWidth
                         label="Order Notes (Optional)"
@@ -497,7 +545,12 @@ const CheckoutPage = () => {
               {activeStep === 1 && (
                 <CheckoutCard>
                   <CardContent>
-                    <Stack direction="row" alignItems="center" spacing={2} mb={3}>
+                    <Stack
+                      direction="row"
+                      alignItems="center"
+                      spacing={2}
+                      mb={3}
+                    >
                       <Avatar sx={{ bgcolor: 'primary.main' }}>
                         <PaymentOutlined />
                       </Avatar>
@@ -526,22 +579,38 @@ const CheckoutPage = () => {
                             }
                           >
                             <CardContent>
-                              <Stack direction="row" alignItems="center" spacing={2}>
+                              <Stack
+                                direction="row"
+                                alignItems="center"
+                                spacing={2}
+                              >
                                 <Avatar
                                   sx={{
-                                    bgcolor: formData.paymentMethod === method.id
-                                      ? 'primary.main'
-                                      : alpha(theme.palette.primary.main, 0.1),
-                                    color: formData.paymentMethod === method.id
-                                      ? 'white'
-                                      : 'primary.main',
+                                    bgcolor:
+                                      formData.paymentMethod === method.id
+                                        ? 'primary.main'
+                                        : alpha(
+                                            theme.palette.primary.main,
+                                            0.1,
+                                          ),
+                                    color:
+                                      formData.paymentMethod === method.id
+                                        ? 'white'
+                                        : 'primary.main',
                                   }}
                                 >
                                   <IconComponent />
                                 </Avatar>
                                 <Box flex={1}>
-                                  <Stack direction="row" alignItems="center" spacing={1}>
-                                    <Typography variant="subtitle1" fontWeight="bold">
+                                  <Stack
+                                    direction="row"
+                                    alignItems="center"
+                                    spacing={1}
+                                  >
+                                    <Typography
+                                      variant="subtitle1"
+                                      fontWeight="bold"
+                                    >
                                       {method.label}
                                     </Typography>
                                     {method.recommended && (
@@ -553,7 +622,10 @@ const CheckoutPage = () => {
                                       />
                                     )}
                                   </Stack>
-                                  <Typography variant="body2" color="text.secondary">
+                                  <Typography
+                                    variant="body2"
+                                    color="text.secondary"
+                                  >
                                     {method.description}
                                   </Typography>
                                 </Box>
@@ -594,7 +666,12 @@ const CheckoutPage = () => {
               {activeStep === 2 && (
                 <CheckoutCard>
                   <CardContent>
-                    <Stack direction="row" alignItems="center" spacing={2} mb={3}>
+                    <Stack
+                      direction="row"
+                      alignItems="center"
+                      spacing={2}
+                      mb={3}
+                    >
                       <Avatar sx={{ bgcolor: 'primary.main' }}>
                         <CheckCircleOutlined />
                       </Avatar>
@@ -609,15 +686,33 @@ const CheckoutPage = () => {
                     </Stack>
 
                     <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2}>
-                      <Card sx={{ p: 2, bgcolor: alpha(theme.palette.primary.main, 0.05), flex: 1 }}>
-                        <Typography variant="subtitle2" color="primary.main" gutterBottom>
+                      <Card
+                        sx={{
+                          p: 2,
+                          bgcolor: alpha(theme.palette.primary.main, 0.05),
+                          flex: 1,
+                        }}
+                      >
+                        <Typography
+                          variant="subtitle2"
+                          color="primary.main"
+                          gutterBottom
+                        >
                           Billing Information
                         </Typography>
                         <Stack spacing={1}>
-                          <Typography variant="body2">{formData.name}</Typography>
-                          <Typography variant="body2">{formData.email}</Typography>
-                          <Typography variant="body2">{formData.phone}</Typography>
-                          <Typography variant="body2">{formData.address}</Typography>
+                          <Typography variant="body2">
+                            {formData.name}
+                          </Typography>
+                          <Typography variant="body2">
+                            {formData.email}
+                          </Typography>
+                          <Typography variant="body2">
+                            {formData.phone}
+                          </Typography>
+                          <Typography variant="body2">
+                            {formData.address}
+                          </Typography>
                         </Stack>
                         <Button
                           size="small"
@@ -629,12 +724,26 @@ const CheckoutPage = () => {
                         </Button>
                       </Card>
 
-                      <Card sx={{ p: 2, bgcolor: alpha(theme.palette.success.main, 0.05), flex: 1 }}>
-                        <Typography variant="subtitle2" color="success.main" gutterBottom>
+                      <Card
+                        sx={{
+                          p: 2,
+                          bgcolor: alpha(theme.palette.success.main, 0.05),
+                          flex: 1,
+                        }}
+                      >
+                        <Typography
+                          variant="subtitle2"
+                          color="success.main"
+                          gutterBottom
+                        >
                           Payment Method
                         </Typography>
                         <Typography variant="body2">
-                          {paymentMethods.find(m => m.id === formData.paymentMethod)?.label}
+                          {
+                            paymentMethods.find(
+                              (m) => m.id === formData.paymentMethod,
+                            )?.label
+                          }
                         </Typography>
                         <Button
                           size="small"
@@ -649,8 +758,9 @@ const CheckoutPage = () => {
 
                     <Alert severity="info" sx={{ mt: 3 }}>
                       <AlertTitle>Order Confirmation</AlertTitle>
-                      By placing this order, you agree to our terms and conditions. 
-                      You will receive an email confirmation shortly.
+                      By placing this order, you agree to our terms and
+                      conditions. You will receive an email confirmation
+                      shortly.
                     </Alert>
 
                     <Stack direction="row" spacing={2} mt={3}>
@@ -667,7 +777,13 @@ const CheckoutPage = () => {
                         disabled={loading}
                         size="large"
                         sx={{ minWidth: 140 }}
-                        startIcon={loading ? <CircularProgress size={20} /> : <SecurityOutlined />}
+                        startIcon={
+                          loading ? (
+                            <CircularProgress size={20} />
+                          ) : (
+                            <SecurityOutlined />
+                          )
+                        }
                       >
                         {loading ? 'Processing...' : 'Place Order'}
                       </Button>
@@ -688,7 +804,13 @@ const CheckoutPage = () => {
                     <Button
                       fullWidth
                       onClick={() => setShowOrderSummary(!showOrderSummary)}
-                      endIcon={showOrderSummary ? <ExpandLessOutlined /> : <ExpandMoreOutlined />}
+                      endIcon={
+                        showOrderSummary ? (
+                          <ExpandLessOutlined />
+                        ) : (
+                          <ExpandMoreOutlined />
+                        )
+                      }
                       sx={{ justifyContent: 'space-between' }}
                     >
                       <Stack direction="row" alignItems="center" spacing={1}>
@@ -696,7 +818,7 @@ const CheckoutPage = () => {
                         <Typography>Order Summary</Typography>
                       </Stack>
                       <Typography fontWeight="bold">
-                        ₦{formatNumber(finalTotal.toFixed(0))}
+                        {formatCurrency(finalTotal, shop.currency)}
                       </Typography>
                     </Button>
                     <Collapse in={showOrderSummary}>
@@ -712,7 +834,12 @@ const CheckoutPage = () => {
               {!isMobile && (
                 <CheckoutCard sx={{ position: 'sticky', top: 20 }}>
                   <CardContent>
-                    <Stack direction="row" alignItems="center" spacing={2} mb={3}>
+                    <Stack
+                      direction="row"
+                      alignItems="center"
+                      spacing={2}
+                      mb={3}
+                    >
                       <Avatar sx={{ bgcolor: 'secondary.main' }}>
                         <ShoppingBagOutlined />
                       </Avatar>
@@ -726,15 +853,32 @@ const CheckoutPage = () => {
               )}
 
               {/* Security Badge */}
-              <Card sx={{ textAlign: 'center', p: 2, bgcolor: alpha(theme.palette.success.main, 0.05) }}>
-                <Stack direction="row" alignItems="center" justifyContent="center" spacing={1} mb={1}>
+              <Card
+                sx={{
+                  textAlign: 'center',
+                  p: 2,
+                  bgcolor: alpha(theme.palette.success.main, 0.05),
+                }}
+              >
+                <Stack
+                  direction="row"
+                  alignItems="center"
+                  justifyContent="center"
+                  spacing={1}
+                  mb={1}
+                >
                   <VerifiedUserOutlined color="success" />
-                  <Typography variant="subtitle2" color="success.main" fontWeight="bold">
+                  <Typography
+                    variant="subtitle2"
+                    color="success.main"
+                    fontWeight="bold"
+                  >
                     Secure Checkout
                   </Typography>
                 </Stack>
                 <Typography variant="caption" color="text.secondary">
-                  Your payment information is protected with 256-bit SSL encryption
+                  Your payment information is protected with 256-bit SSL
+                  encryption
                 </Typography>
               </Card>
             </Stack>
@@ -773,13 +917,13 @@ const CheckoutPage = () => {
                   secondary={
                     <Stack direction="row" spacing={1} alignItems="center">
                       <Typography variant="body2" color="text.secondary">
-                        ₦{formatNumber(amount.toFixed(0))}
+                        {formatCurrency(amount, shop?.currency)}
                       </Typography>
                       {productId.discount > 0 && (
-                        <Chip 
-                          label={`${productId.discount}% OFF`} 
-                          size="small" 
-                          color="error" 
+                        <Chip
+                          label={`${productId.discount}% OFF`}
+                          size="small"
+                          color="error"
                           variant="outlined"
                         />
                       )}
@@ -787,7 +931,7 @@ const CheckoutPage = () => {
                   }
                 />
                 <Typography variant="subtitle2" fontWeight="bold">
-                  ₦{formatNumber((quantity * amount).toFixed(0))}
+                  {formatCurrency(quantity * amount, shop?.currency)}
                 </Typography>
               </ListItem>
             );
@@ -826,7 +970,8 @@ const CheckoutPage = () => {
           </Stack>
           {promoDiscount > 0 && (
             <Alert severity="success" sx={{ mt: 1 }}>
-              Promo code applied! You saved ₦{formatNumber(promoDiscount.toFixed(0))}
+              Promo code applied! You saved
+              {formatCurrency(promoDiscount, shop?.currency)}
             </Alert>
           )}
         </Stack>
@@ -837,17 +982,19 @@ const CheckoutPage = () => {
         <Stack spacing={1}>
           <Stack direction="row" justifyContent="space-between">
             <Typography>Subtotal</Typography>
-            <Typography>₦{formatNumber(subtotal.toFixed(0))}</Typography>
+            <Typography>{formatCurrency(subtotal, shop?.currency)}</Typography>
           </Stack>
           <Stack direction="row" justifyContent="space-between">
             <Typography>Delivery Fee</Typography>
-            <Typography>₦{formatNumber(deliveryFee.toFixed(0))}</Typography>
+            <Typography>
+              {formatCurrency(deliveryFee, shop?.currency)}
+            </Typography>
           </Stack>
           {promoDiscount > 0 && (
             <Stack direction="row" justifyContent="space-between">
               <Typography color="success.main">Discount</Typography>
               <Typography color="success.main">
-                -₦{formatNumber(promoDiscount.toFixed(0))}
+                -{formatCurrency(promoDiscount, shop?.currency)}
               </Typography>
             </Stack>
           )}
@@ -857,7 +1004,7 @@ const CheckoutPage = () => {
               Total
             </Typography>
             <Typography variant="h6" fontWeight="bold" color="primary.main">
-              ₦{formatNumber(finalTotal.toFixed(0))}
+              {formatCurrency(finalTotal, shop?.currency)}
             </Typography>
           </Stack>
         </Stack>

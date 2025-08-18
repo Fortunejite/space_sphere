@@ -4,6 +4,9 @@ import slugify from 'slugify';
 const variantSchema = new Schema(
   {
     attributes: { type: Map, of: String }, // e.g. { size: 'M', color: 'red' }
+    price: { type: Number, required: true },
+    stock: { type: Number, default: 0 },
+    discount: { type: Number, default: 0 },
     isDefault: { type: Boolean, default: false },
   },
   { _id: false },
@@ -32,10 +35,10 @@ const productSchema = new Schema(
     // variants & pricing
     variants: [variantSchema],
     price: { type: Number, required: true }, // fallback if no variants
-    currency: { type: String, default: 'USD' }, // fallback currency
 
     // inventory
     stock: { type: Number, default: 0 }, // fallback if no variants
+    salesCount: { type: Number, default: 0 }, // total sales across all variants
 
     // shipping & tax
     weight: Number, // in grams (or unit)
@@ -127,6 +130,7 @@ type InferredFields = {
   shippingClass?: string;
   taxClass?: string;
   discount: number;
+  salesCount: number;
   saleStart?: Date;
   saleEnd?: Date;
   mainPic: string;

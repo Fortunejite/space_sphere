@@ -250,7 +250,7 @@ const ShopNavbar = () => {
                 alt="User avatar"
               />
             </Box>
-            {shop.ownerId.toString() === session?.user?._id && (
+            {shop.ownerId === session?.user?._id && (
               <IconButton
                 color="inherit"
                 LinkComponent={Link}

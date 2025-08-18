@@ -9,13 +9,13 @@ import GridView from './gridView';
 import ListView from './listView';
 import GridViewSkeleton from './gridViewSkeleton';
 import ListViewSkeleton from './listViewSkeleton';
-import { IShop } from '@/models/Shop.model';
+import { ShopWithStats } from '@/types/shop';
 
 interface Props {
   query: Record<string, string>;
   limit: number;
   style: 'grid' | 'list';
-  shop?: IShop;
+  shop?: ShopWithStats;
 }
 
 const ProductsView = ({ query, limit, style, shop }: Props) => {
@@ -23,6 +23,8 @@ const ProductsView = ({ query, limit, style, shop }: Props) => {
   const [loading, setLoading] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const [isLast, setIsLast] = useState(false); //TODO: Add infinite scroll
+
+  const url = shop ? `/api/shops/${shop.subdomain}/products` : '/api/products';
 
   useEffect(() => {
     setProducts([]);
@@ -37,12 +39,11 @@ const ProductsView = ({ query, limit, style, shop }: Props) => {
       const params = new URLSearchParams();
       params.set('limit', limit.toString());
       params.set('page', currentPage.toString());
-      if (shop) params.set('shopId', shop._id.toString());
       Object.entries(query).forEach(([key, value]) => {
         params.set(key, value);
       });
 
-      const { data: products } = await axios.get('/api/products', { params });
+      const { data: products } = await axios.get(url, { params });
       if (products.length < limit) setIsLast(true);
       setProducts((prev) => [...prev, ...products]);
       setCurrentPage((prev) => prev + 1);
@@ -51,7 +52,7 @@ const ProductsView = ({ query, limit, style, shop }: Props) => {
     } finally {
       setLoading(false);
     }
-  }, [query, currentPage, limit, isLast, shop]);
+  }, [query, currentPage, limit, isLast, url]);
 
   useEffect(() => {
     fetchProducts();

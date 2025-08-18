@@ -3,13 +3,14 @@ import Link from 'next/link';
 
 import { styled, Box, Stack, Typography, Grid, Paper } from '@mui/material';
 
-import { formatNumber, generateURL } from '@/lib/utils';
+import { generateURL } from '@/lib/utils';
 import { IProduct } from '@/models/Product.model';
-import { IShop } from '@/models/Shop.model';
+import { formatCurrency } from '@/lib/currency';
+import { ShopWithStats } from '@/types/shop';
 
 interface ViewsProps {
   products: IProduct[];
-  shop?: IShop;
+  shop?: ShopWithStats;
 }
 
 const Badge = styled(Box)(({ theme }) => ({
@@ -22,28 +23,28 @@ const Badge = styled(Box)(({ theme }) => ({
   padding: '0 8px',
 }));
 
-const PriceSection = ({ product }: { product: IProduct }) => {
+const PriceSection = ({ product, currency }: { product: IProduct, currency: string | undefined }) => {
   if (product.discount > 0) {
     const discountAmount =
       product.price - (product.discount / 100) * product.price;
     return (
       <Stack direction='row' spacing={1}>
         <Typography variant='body2' component='p'>
-          ₦{formatNumber(discountAmount.toFixed(0))}
+          {formatCurrency(discountAmount, currency)}
         </Typography>
         <Typography
           variant='body2'
           color='secondary'
           sx={{ textDecoration: 'line-through' }}
         >
-          ₦{formatNumber(product.price.toFixed(0))}
+          {formatCurrency(product.price, currency)}
         </Typography>
       </Stack>
     );
   }
   return (
     <Typography variant='body2' component='p'>
-      ₦{formatNumber(product.price.toFixed(0))}
+      {formatCurrency(product.price, currency)}
     </Typography>
   );
 };
@@ -92,7 +93,7 @@ const GridView = ({ products, shop }: ViewsProps) => (
           <Stack p={1}>
             <Typography variant='body1'>{product.name}</Typography>
             <Stack direction='column' spacing={1}>
-              <PriceSection product={product} />
+              <PriceSection product={product} currency={shop?.currency} />
             </Stack>
           </Stack>
         </Paper>

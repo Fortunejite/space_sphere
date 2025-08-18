@@ -33,6 +33,7 @@ import {
   ArrowForwardOutlined
 } from '@mui/icons-material';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
+import { useAppSelector } from '@/hooks/redux.hook';
 
 // Mock data
 const salesData = [
@@ -116,6 +117,7 @@ const topProducts = [
 
 const AdminDashboard = () => {
   const theme = useTheme();
+  const { shop } = useAppSelector((state) => state.shop);
 
 interface StatCardProps {
   title: string;
@@ -208,6 +210,16 @@ interface StatCardProps {
     }
   };
 
+  if (!shop) {
+    return (
+      <Box sx={{ p: 3 }}>
+        <Typography variant="h5" color="text.secondary">
+          Loading shop data...
+        </Typography>
+      </Box>
+    );
+  }
+  
   return (
     <Box>
       {/* Welcome Section */}
@@ -235,7 +247,7 @@ interface StatCardProps {
         <Grid size={{xs: 12, sm: 6, md: 3}}>
           <StatCard
             title="Total Orders"
-            value="1,247"
+            value={shop.stats.totalOrders.toLocaleString()}
             subtitle="This month"
             change={8.2}
             icon={<ShoppingBagOutlined />}
@@ -255,7 +267,7 @@ interface StatCardProps {
         <Grid size={{xs: 12, sm: 6, md: 3}}>
           <StatCard
             title="Total Products"
-            value="156"
+            value={shop.stats.totalProducts.toLocaleString()}
             subtitle="In inventory"
             change={-2.4}
             icon={<InventoryOutlined />}

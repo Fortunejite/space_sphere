@@ -1,26 +1,23 @@
 import { z } from 'zod';
 
 export const createProductSchema = z.object({
-  shopId: z.string(),
   name: z.string(),
   description: z.string().optional(),
   categories: z.array(z.string()),
   tags: z.array(z.string()),
-  variant: z.array(
+  variants: z.array(
     z.object({
       attributes: z.record(z.string(), z.string()),
-      price: z.number(),
-      currency: z.string().optional(),
-      stock: z.number().optional(),
-      discount: z.number().optional(),
+      price: z.coerce.number().optional(),
+      stock: z.coerce.number().optional(),
+      discount: z.coerce.number().optional(),
       isDefault: z.boolean(),
     }),
-  ),
-  price: z.number(),
-  discount: z.number().optional(),
-  currency: z.string().optional(),
-  stock: z.number().optional(),
-  weight: z.number().optional(),
+  ).default([]),
+  price: z.coerce.number(),
+  discount: z.coerce.number().optional(),
+  stock: z.coerce.number().optional(),
+  weight: z.coerce.number().optional(),
   saleStart: z.date().optional(),
   saleEnd: z.date().optional(),
   mainPic: z.string(),
@@ -28,4 +25,5 @@ export const createProductSchema = z.object({
     .array(z.string())
     .max(5, 'A maximum of 5 thumbnails is required'),
   isFeatured: z.boolean(),
+  status: z.enum(['active', 'draft']).default('active'),
 });

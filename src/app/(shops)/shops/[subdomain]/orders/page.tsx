@@ -41,12 +41,12 @@ import {
 } from '@mui/icons-material';
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { formatNumber, generateURL } from '@/lib/utils';
-import { IOrder } from '@/models/Order.model';
-import { IProduct } from '@/models/Product.model';
+import { generateURL } from '@/lib/utils';
 import axios from 'axios';
 import { useAppSelector } from '@/hooks/redux.hook';
 import OrderCard from '@/components/orderCard';
+import { OrderWithShopAndUser } from '@/types/order';
+import { formatCurrency } from '@/lib/currency';
 
 const EmptyOrdersState = () => {
   const theme = useTheme();
@@ -97,10 +97,10 @@ const OrdersPage = () => {
   const [selectedTab, setSelectedTab] = useState(0);
   const [searchQuery, setSearchQuery] = useState('');
 
-  const shopId = shop?._id || null;
+  const subdomain = shop?.subdomain;
 
   // Data states
-  const [orders, setOrders] = useState<IOrder[]>([]);
+  const [orders, setOrders] = useState<OrderWithShopAndUser[]>([]);
   const [orderStats, setOrderStats] = useState({
     total: 0,
     processing: 0,
@@ -108,13 +108,13 @@ const OrdersPage = () => {
     delivered: 0,
     cancelled: 0,
   });
-  const [page, setPage] = useState(1);
+  const [page] = useState(1);
 
   // Modal states
   const [cancelModalOpen, setCancelModalOpen] = useState(false);
   const [supportModalOpen, setSupportModalOpen] = useState(false);
   const [reorderModalOpen, setReorderModalOpen] = useState(false);
-  const [selectedOrder, setSelectedOrder] = useState<IOrder | null>(null);
+  const [selectedOrder, setSelectedOrder] = useState<OrderWithShopAndUser | null>(null);
   const [fetchOrderStatus, setFetchOrderStatus] = useState(true);
 
   const tabLabels = [
@@ -139,7 +139,7 @@ const OrdersPage = () => {
       searchQuery === '' ||
       order.trackingId.toString().includes(searchQuery.toLowerCase()) ||
       order.cartItems.some((item) =>
-        (item.product as IProduct).name
+        item.product.name
           .toLowerCase()
           .includes(searchQuery.toLowerCase()),
       );
@@ -150,13 +150,10 @@ const OrdersPage = () => {
   const fetchOrders = async (): Promise<void> => {
     const params = new URLSearchParams();
     params.append('page', page.toString());
-    if (shopId) {
-      params.append('shopId', shopId);
-    }
     if (fetchOrderStatus) {
       params.append('status', 'true');
     }
-    const res = await axios.get('/api/orders', {
+    const res = await axios.get(`/api/shops/${subdomain}/orders`, {
       params,
     });
     setOrders(res.data.data);
@@ -165,22 +162,22 @@ const OrdersPage = () => {
   };
 
   useEffect(() => {
-    if (shopId) fetchOrders();
+    if (subdomain) fetchOrders();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [page, shopId]);
+  }, [page, subdomain]);
 
   // Modal handlers
-  const handleCancelOrder = (order: IOrder) => {
+  const handleCancelOrder = (order: OrderWithShopAndUser) => {
     setSelectedOrder(order);
     setCancelModalOpen(true);
   };
 
-  const handleSupportRequest = (order: IOrder) => {
+  const handleSupportRequest = (order: OrderWithShopAndUser) => {
     setSelectedOrder(order);
     setSupportModalOpen(true);
   };
 
-  const handleReorder = (order: IOrder) => {
+  const handleReorder = (order: OrderWithShopAndUser) => {
     setSelectedOrder(order);
     setReorderModalOpen(true);
   };
@@ -401,7 +398,7 @@ const OrdersPage = () => {
                 Order Details:
               </Typography>
               <Typography variant="body2">
-                Total: ₦{formatNumber(selectedOrder.totalAmount)}
+                Total: {formatCurrency(selectedOrder.totalAmount, shop?.currency)}
               </Typography>
               <Typography variant="body2">
                 Items: {selectedOrder.cartItems.length} item(s)
@@ -563,7 +560,7 @@ const OrdersPage = () => {
         </DialogTitle>
         <DialogContent>
           <Typography variant="body1" sx={{ mb: 2 }}>
-            Reorder items from order <strong>#{selectedOrder?.id}</strong>?
+            Reorder items from order <strong>#{selectedOrder?.trackingId}</strong>?
           </Typography>
           <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
             All items from this order will be added to your cart. You can modify
@@ -599,7 +596,7 @@ const OrdersPage = () => {
                 >
                   <Typography variant="subtitle2">Total:</Typography>
                   <Typography variant="subtitle2" fontWeight={700}>
-                    ₦{selectedOrder.total.toLocaleString()}
+                    ₦{selectedOrder.totalAmount.toLocaleString()}
                   </Typography>
                 </Stack>
               </Stack>

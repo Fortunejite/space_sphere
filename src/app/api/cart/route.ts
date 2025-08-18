@@ -4,7 +4,7 @@ import { errorHandler } from '@/lib/errorHandler';
 import Cart from '@/models/Cart.model';
 import '@/models/Product.model';
 import '@/models/Shop.model';
-import { requireAuth } from '@/lib/utils';
+import { requireAuth } from '@/lib/apiAuth';
 
 await dbConnect();
 

@@ -1,4 +1,3 @@
-import { auth } from '@/auth';
 import { ItemInCart } from '@/types/cart';
 
 export const generateURL = (subdomain?: string) => {
@@ -21,6 +20,10 @@ export const formatNumber = (number: number | string) => {
   return number.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',');
 };
 
+// const formatNumber = (num: number) => {
+//     return new Intl.NumberFormat('en-US').format(num);
+//   };
+
 export const calculateCartTotal = (
   items: ItemInCart[],
 ) =>
@@ -30,15 +33,7 @@ export const calculateCartTotal = (
         ? curr.productId.price - ((curr.productId.discount / 100) * curr.productId.price)
         : curr.productId.price;
     return acc + curr.quantity * amount;
-  }, 0);
-
-export async function requireAuth() {
-  const session = await auth();
-  if (!session) {
-    throw Object.assign(new Error('Unauthorized'), { status: 401 });
-  }
-  return session.user;
-}
+  }, 0) as number;
 
 export const generateTrackingId = () =>
   Math.floor(100000000 * Math.random() * 9000000000);

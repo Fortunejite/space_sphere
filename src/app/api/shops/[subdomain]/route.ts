@@ -8,7 +8,7 @@ export const GET = errorHandler(async (_, { params }) => {
 
   const { subdomain } = await params;
 
-  const shop = await Shop.findOne({ subdomain });
+  const shop = await Shop.findOne({ subdomain }).populate('stats');
 
   if (!shop)
     return NextResponse.json({ message: 'Shop not found.' }, { status: 404 });

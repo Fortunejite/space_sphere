@@ -1,7 +1,8 @@
 'use client';
 
 import { useAppSelector } from '@/hooks/redux.hook';
-import { calculateCartTotal, formatNumber, generateURL } from '@/lib/utils';
+import { formatCurrency } from '@/lib/currency';
+import { calculateCartTotal, generateURL } from '@/lib/utils';
 import { getShopCart } from '@/redux/cartSlice';
 import {
   Box,
@@ -112,10 +113,10 @@ const CartPage = () => {
                           </Stack>
                         </Stack>
                       </TableCell>
-                      <TableCell>₦{formatNumber(amount.toFixed(0))}</TableCell>
+                      <TableCell>{formatCurrency(amount, shop.currency)}</TableCell>
                       <TableCell>{quantity}</TableCell>
                       <TableCell>
-                        ₦{formatNumber((quantity * amount).toFixed(0))}
+                        {formatCurrency(quantity * amount, shop.currency)}
                       </TableCell>
                     </TableRow>
                   );
@@ -126,7 +127,7 @@ const CartPage = () => {
           <Stack minWidth={300} spacing={2}>
             <Stack direction="row" justifyContent={'space-between'}>
               <Typography>Subtotal</Typography>
-              <Typography>₦ {formatNumber(totalAmount.toFixed(0))}</Typography>
+              <Typography>{formatCurrency(totalAmount, shop.currency)}</Typography>
             </Stack>
             <Button
               variant="contained"

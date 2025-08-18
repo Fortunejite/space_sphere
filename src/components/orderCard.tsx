@@ -31,9 +31,9 @@ import {
   DownloadOutlined,
   VisibilityOutlined,
 } from '@mui/icons-material';
-
-import { IOrder } from '@/models/Order.model';
-import { formatNumber } from '@/lib/utils';
+import { OrderWithShopAndUser } from '@/types/order';
+import { formatCurrency } from '@/lib/currency';
+import { useAppSelector } from '@/hooks/redux.hook';
 
 const statusConfig = {
   processing: {
@@ -133,12 +133,13 @@ const OrderCard = ({
   onSupportRequest, 
   onReorder 
 }: { 
-  order: IOrder,
-  onCancelOrder: (order: IOrder) => void,
-  onSupportRequest: (order: IOrder) => void,
-  onReorder: (order: IOrder) => void
+  order: OrderWithShopAndUser,
+  onCancelOrder: (order: OrderWithShopAndUser) => void,
+  onSupportRequest: (order: OrderWithShopAndUser) => void,
+  onReorder: (order: OrderWithShopAndUser) => void
 }) => {
   const theme = useTheme();
+  const { shop } = useAppSelector((state) => state.shop);
   const [expanded, setExpanded] = useState(false);
 
   return (
@@ -192,7 +193,7 @@ const OrderCard = ({
           <Stack direction="row" spacing={2} alignItems="center" mb={2}>
             {order.cartItems.slice(0, 3).map(({product}) => (
               <Avatar
-                key={product._id}
+                key={product._id.toString()}
                 src={product.mainPic}
                 sx={{ 
                   width: 48, 
@@ -212,7 +213,7 @@ const OrderCard = ({
                 {order.cartItems.length} item{order.cartItems.length > 1 ? 's' : ''}
               </Typography>
               <Typography variant="h6" color="primary.main" fontWeight={600}>
-                ₦{formatNumber(order.totalAmount)}
+                {formatCurrency(order.totalAmount, shop?.currency)}
               </Typography>
             </Box>
           </Stack>
@@ -257,7 +258,7 @@ const OrderCard = ({
             </Typography>
             <Stack spacing={2}>
               {order.cartItems.map(({product, quantity}) => (
-                <Stack key={product._id} direction="row" spacing={2} alignItems="center">
+                <Stack key={product._id.toString()} direction="row" spacing={2} alignItems="center">
                   <Avatar src={product.mainPic} sx={{ width: 56, height: 56 }} />
                   <Box sx={{ flex: 1 }}>
                     <Typography variant="body1" fontWeight={500}>
@@ -268,7 +269,7 @@ const OrderCard = ({
                     </Typography>
                   </Box>
                   <Typography variant="body1" fontWeight={600}>
-                    ₦{formatNumber(product.price.toFixed(0))}
+                    {formatCurrency(product.price, shop?.currency)}
                   </Typography>
                 </Stack>
               ))}

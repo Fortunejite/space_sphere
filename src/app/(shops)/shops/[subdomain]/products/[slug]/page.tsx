@@ -23,15 +23,15 @@ import {
 
 import { useAppSelector, useAppDispatch } from '@/hooks/redux.hook';
 import { clientErrorHandler } from '@/lib/errorHandler';
-import { formatNumber, generateURL } from '@/lib/utils';
+import { generateURL } from '@/lib/utils';
 import { getShopItem, toggleCart, updateCart } from '@/redux/cartSlice';
 
 import { ICategory } from '@/models/Category.model';
 import { IProduct } from '@/models/Product.model';
 import { IUser } from '@/models/User.model';
+import { formatCurrency } from '@/lib/currency';
 
-type CustomProduct
-  = Omit<IProduct, 'categories' | 'reviews' | '_id'> & {
+type CustomProduct = Omit<IProduct, 'categories' | 'reviews' | '_id'> & {
   _id: string;
   categories: ICategory[];
   reviews: {
@@ -40,7 +40,7 @@ type CustomProduct
     comment?: string;
     createdAt: string | Date;
   }[];
-}
+};
 
 const VariantElement = styled(Paper, {
   shouldForwardProp: (prop) => prop !== 'isActive',
@@ -84,16 +84,14 @@ const ProductDetailsPage = () => {
     }
   }, [product, cartItem]);
 
-  // Fetch product once slug or shopId changes
+  // Fetch product once slug or changes
   const fetchProduct = useCallback(async () => {
-    if (!slug || !shopId) return;
+    if (!slug || !shop?.subdomain) return;
 
     try {
-      const params = new URLSearchParams();
-      params.set('shopId', shopId);
-      const { data } = await axios.get<CustomProduct>(`/api/products/${slug}`, {
-        params,
-      });
+      const { data } = await axios.get<CustomProduct>(
+        `/api/shops/${shop.subdomain}/products/${slug}`,
+      );
       setProduct(data);
     } catch (err) {
       if (axios.isAxiosError(err) && err.response?.status === 404) {
@@ -102,7 +100,7 @@ const ProductDetailsPage = () => {
         console.error(clientErrorHandler(err));
       }
     }
-  }, [slug, shopId]);
+  }, [slug, shop?.subdomain]);
 
   useEffect(() => {
     fetchProduct();
@@ -162,7 +160,7 @@ const ProductDetailsPage = () => {
         {/* Left: Image */}
         <Grid size={{ xs: 12, sm: 6 }}>
           <Box
-            bgcolor='background.paper'
+            bgcolor="background.paper"
             sx={{
               position: 'relative',
               height: isMobile ? '50vh' : 'calc(100vh - 72px)',
@@ -181,27 +179,27 @@ const ProductDetailsPage = () => {
         {/* Right: Details */}
         <Grid size={{ xs: 12, sm: 6 }}>
           <Stack spacing={2}>
-            <Typography variant='h4'>{product.name}</Typography>
+            <Typography variant="h4">{product.name}</Typography>
 
-            <Stack direction='row' justifyContent='space-between'>
+            <Stack direction="row" justifyContent="space-between">
               {product.stock > 0 ? (
-                <Typography variant='body1' color='success.main'>
+                <Typography variant="body1" color="success.main">
                   In Stock
                 </Typography>
               ) : (
-                <Typography variant='body1' color='error.main'>
+                <Typography variant="body1" color="error.main">
                   Out of Stock
                 </Typography>
               )}
-              <Stack direction='row' gap={2} alignItems='center'>
+              <Stack direction="row" gap={2} alignItems="center">
                 <Rating
                   precision={0.5}
                   value={avgRatings}
-                  size='small'
+                  size="small"
                   readOnly
                 />
                 {!isMobile && (
-                  <Typography variant='body2'>
+                  <Typography variant="body2">
                     {product.reviews.length} Reviews
                   </Typography>
                 )}
@@ -209,42 +207,36 @@ const ProductDetailsPage = () => {
             </Stack>
 
             {product.discount > 0 ? (
-              <Stack direction='row' gap={1} alignItems='flex-end'>
+              <Stack direction="row" gap={1} alignItems="flex-end">
                 <Typography
-                  variant='body1'
+                  variant="body1"
                   sx={{ textDecoration: 'line-through' }}
                 >
-                  ₦{formatNumber(product.price.toFixed(0))}
+                  {formatCurrency(product.price, shop?.currency)}
                 </Typography>
-                <Typography variant='h5' fontWeight='bold' color='secondary'>
-                  ₦
-                  {formatNumber(
-                    (
-                      product.price -
-                      (product.discount / 100) * product.price
-                    ).toFixed(0),
+                <Typography variant="h5" fontWeight="bold" color="secondary">
+                  {formatCurrency(
+                    product.price - (product.discount / 100) * product.price,
+                    shop?.currency,
                   )}
                 </Typography>
                 <Typography>|</Typography>
                 <Typography>You Save</Typography>
-                <Typography color='secondary' fontWeight='bold'>
-                  ₦
-                  {formatNumber(
-                    ((product.discount / 100) * product.price).toFixed(0),
-                  )}
+                <Typography color="secondary" fontWeight="bold">
+                  {formatCurrency((product.discount / 100) * product.price, shop?.currency)}
                 </Typography>
-                <Typography color='secondary'>({product.discount}%)</Typography>
+                <Typography color="secondary">({product.discount}%)</Typography>
               </Stack>
             ) : (
-              <Typography variant='h5' fontWeight='bold'>
-                ₦{formatNumber(product.price.toFixed(0))}
+              <Typography variant="h5" fontWeight="bold">
+                  {formatCurrency(product.price, shop?.currency)}
               </Typography>
             )}
 
             {product.variants.length > 0 && (
               <>
-                <Typography variant='body1'>Variants</Typography>
-                <Stack direction='row' gap={2} flexWrap='wrap'>
+                <Typography variant="body1">Variants</Typography>
+                <Stack direction="row" gap={2} flexWrap="wrap">
                   {product.variants.map((variant, i) => (
                     <VariantElement
                       key={i}
@@ -255,19 +247,19 @@ const ProductDetailsPage = () => {
                         ([key, value]) => (
                           <Stack
                             key={key}
-                            direction='row'
-                            justifyContent='space-between'
+                            direction="row"
+                            justifyContent="space-between"
                             minWidth={100}
                           >
                             <Typography
-                              variant='body2'
-                              textTransform='capitalize'
+                              variant="body2"
+                              textTransform="capitalize"
                             >
                               {key}:
                             </Typography>
                             <Typography
-                              variant='body2'
-                              textTransform='capitalize'
+                              variant="body2"
+                              textTransform="capitalize"
                             >
                               {value as string}
                             </Typography>
@@ -281,7 +273,7 @@ const ProductDetailsPage = () => {
             )}
 
             <Button
-              variant='contained'
+              variant="contained"
               fullWidth
               onClick={handleToggleCart}
               disabled={isToggling}
@@ -289,31 +281,31 @@ const ProductDetailsPage = () => {
               {cartItem ? 'Remove from Cart' : 'Add to Cart'}
             </Button>
 
-            <Typography variant='body1'>Product Description</Typography>
-            <Typography variant='body2' color='text.secondary'>
+            <Typography variant="body1">Product Description</Typography>
+            <Typography variant="body2" color="text.secondary">
               {product.description}
             </Typography>
 
-            <Typography variant='body1'>Product Details</Typography>
+            <Typography variant="body1">Product Details</Typography>
             <Grid container spacing={1}>
               <Grid size={6}>
-                <Typography variant='body2' color='text.secondary'>
+                <Typography variant="body2" color="text.secondary">
                   Weight:
                 </Typography>
               </Grid>
               <Grid size={6}>
-                <Typography variant='body2'>{product.weight} grams</Typography>
+                <Typography variant="body2">{product.weight} grams</Typography>
               </Grid>
 
               {product.dimensions && (
                 <>
                   <Grid size={6}>
-                    <Typography variant='body2' color='text.secondary'>
+                    <Typography variant="body2" color="text.secondary">
                       Dimensions:
                     </Typography>
                   </Grid>
                   <Grid size={6}>
-                    <Typography variant='body2'>
+                    <Typography variant="body2">
                       {product.dimensions.length} x {product.dimensions.width} x{' '}
                       {product.dimensions.height} cm
                     </Typography>
@@ -322,45 +314,45 @@ const ProductDetailsPage = () => {
               )}
 
               <Grid size={6}>
-                <Typography variant='body2' color='text.secondary'>
+                <Typography variant="body2" color="text.secondary">
                   Categories:
                 </Typography>
               </Grid>
               <Grid size={6}>
-                <Typography variant='body2'>
+                <Typography variant="body2">
                   {product.categories.map((c) => c.name).join(', ')}
                 </Typography>
               </Grid>
 
               <Grid size={6}>
-                <Typography variant='body2' color='text.secondary'>
+                <Typography variant="body2" color="text.secondary">
                   Tags:
                 </Typography>
               </Grid>
               <Grid size={6}>
-                <Typography variant='body2'>
+                <Typography variant="body2">
                   {product.tags.join(', ')}
                 </Typography>
               </Grid>
             </Grid>
 
-            <Typography variant='body1'>Reviews</Typography>
+            <Typography variant="body1">Reviews</Typography>
             <Stack spacing={1}>
               {product.reviews.length > 0 ? (
                 product.reviews.map((review, idx) => (
                   <Stack
                     key={idx}
-                    direction='row'
-                    justifyContent='space-between'
+                    direction="row"
+                    justifyContent="space-between"
                   >
                     <Box>
-                      <Stack direction='row' alignItems='center' gap={1}>
+                      <Stack direction="row" alignItems="center" gap={1}>
                         <Avatar sx={{ width: 24, height: 24 }} />
-                        <Typography variant='body2'>
+                        <Typography variant="body2">
                           {review.user?.username}
                         </Typography>
                       </Stack>
-                      <Typography variant='body2'>
+                      <Typography variant="body2">
                         {review.comment || 'No comment provided.'}
                       </Typography>
                     </Box>
@@ -368,7 +360,7 @@ const ProductDetailsPage = () => {
                   </Stack>
                 ))
               ) : (
-                <Typography variant='body2' color='text.secondary'>
+                <Typography variant="body2" color="text.secondary">
                   No reviews yet.
                 </Typography>
               )}
