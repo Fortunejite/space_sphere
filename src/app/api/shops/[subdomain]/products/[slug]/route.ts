@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 
 import Product from '@/models/Product.model';
 import '@/models/Category.model';
+import '@/models/User.model';
 
 import dbConnect from '@/lib/mongodb';
 import { errorHandler } from '@/lib/errorHandler';

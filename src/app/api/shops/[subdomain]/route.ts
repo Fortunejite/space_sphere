@@ -1,6 +1,7 @@
 import { errorHandler } from '@/lib/errorHandler';
 import dbConnect from '@/lib/mongodb';
 import Shop from '@/models/Shop.model';
+import '@/models/ShopStats.model';
 import { NextResponse } from 'next/server';
 
 export const GET = errorHandler(async (_, { params }) => {

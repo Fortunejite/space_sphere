@@ -131,7 +131,7 @@ const ShopSettings = () => {
             Shop Identity
           </Typography>
           <Grid container spacing={3}>
-            <Grid item xs={12} md={6}>
+            <Grid size={{ xs: 12, sm: 6 }}>
               <TextField
                 fullWidth
                 label="Shop Name"
@@ -142,7 +142,7 @@ const ShopSettings = () => {
                 })}
               />
             </Grid>
-            <Grid item xs={12} md={6}>
+            <Grid size={{ xs: 12, sm: 6 }}>
               <TextField
                 fullWidth
                 label="Subdomain"
@@ -156,7 +156,7 @@ const ShopSettings = () => {
                 })}
               />
             </Grid>
-            <Grid item xs={12}>
+            <Grid size={12}>
               <TextField
                 fullWidth
                 label="Shop Description"
@@ -169,7 +169,7 @@ const ShopSettings = () => {
                 })}
               />
             </Grid>
-            <Grid item xs={12} md={6}>
+            <Grid size={{ xs: 12, sm: 6 }}>
               <FormControl fullWidth>
                 <InputLabel>Category</InputLabel>
                 <Select
@@ -200,7 +200,7 @@ const ShopSettings = () => {
             Shop Media
           </Typography>
           <Grid container spacing={3}>
-            <Grid item xs={12} md={6}>
+            <Grid size={{ xs: 12, sm: 6 }}>
               <Box>
                 <Typography variant="subtitle2" gutterBottom>
                   Shop Logo
@@ -232,7 +232,7 @@ const ShopSettings = () => {
                 </Stack>
               </Box>
             </Grid>
-            <Grid item xs={12} md={6}>
+            <Grid size={{ xs: 12, sm: 6 }}>
               <Box>
                 <Typography variant="subtitle2" gutterBottom>
                   Shop Banner
@@ -284,7 +284,7 @@ const ShopSettings = () => {
             Contact Information
           </Typography>
           <Grid container spacing={3}>
-            <Grid item xs={12} md={6}>
+            <Grid size={{ xs: 12, sm: 6 }}>
               <TextField
                 fullWidth
                 label="Phone Number"
@@ -298,7 +298,7 @@ const ShopSettings = () => {
                 })}
               />
             </Grid>
-            <Grid item xs={12} md={6}>
+            <Grid size={{ xs: 12, sm: 6 }}>
               <TextField
                 fullWidth
                 label="Email Address"
@@ -313,7 +313,7 @@ const ShopSettings = () => {
                 })}
               />
             </Grid>
-            <Grid item xs={12}>
+            <Grid size={12}>
               <TextField
                 fullWidth
                 label="Business Address"
@@ -340,7 +340,7 @@ const ShopSettings = () => {
             Social Media Links
           </Typography>
           <Grid container spacing={3}>
-            <Grid item xs={12} md={6}>
+            <Grid size={{ xs: 12, sm: 6 }}>
               <TextField
                 fullWidth
                 label="Website"
@@ -350,7 +350,7 @@ const ShopSettings = () => {
                 }}
               />
             </Grid>
-            <Grid item xs={12} md={6}>
+            <Grid size={{ xs: 12, sm: 6 }}>
               <TextField
                 fullWidth
                 label="Facebook"
@@ -358,7 +358,7 @@ const ShopSettings = () => {
                 placeholder="https://facebook.com/yourpage"
               />
             </Grid>
-            <Grid item xs={12} md={6}>
+            <Grid size={{ xs: 12, sm: 6 }}>
               <TextField
                 fullWidth
                 label="Instagram"
@@ -366,7 +366,7 @@ const ShopSettings = () => {
                 placeholder="https://instagram.com/yourpage"
               />
             </Grid>
-            <Grid item xs={12} md={6}>
+            <Grid size={{ xs: 12, sm: 6 }}>
               <TextField
                 fullWidth
                 label="Twitter"
@@ -388,14 +388,14 @@ const ShopSettings = () => {
             Business Information
           </Typography>
           <Grid container spacing={3}>
-            <Grid item xs={12} md={6}>
+            <Grid size={{ xs: 12, sm: 6 }}>
               <TextField
                 fullWidth
                 label="Legal Business Name"
                 value={settings.business.businessName}
               />
             </Grid>
-            <Grid item xs={12} md={6}>
+            <Grid size={{ xs: 12, sm: 6 }}>
               <FormControl fullWidth>
                 <InputLabel>Business Type</InputLabel>
                 <Select
@@ -409,21 +409,21 @@ const ShopSettings = () => {
                 </Select>
               </FormControl>
             </Grid>
-            <Grid item xs={12} md={6}>
+            <Grid size={{ xs: 12, sm: 6 }}>
               <TextField
                 fullWidth
                 label="Business Registration Number"
                 value={settings.business.businessRegNumber}
               />
             </Grid>
-            <Grid item xs={12} md={6}>
+            <Grid size={{ xs: 12, sm: 6 }}>
               <TextField
                 fullWidth
                 label="Tax Identification Number"
                 value={settings.business.taxNumber}
               />
             </Grid>
-            <Grid item xs={12}>
+            <Grid size={12}>
               <TextField
                 fullWidth
                 label="Business Address"
@@ -442,21 +442,21 @@ const ShopSettings = () => {
             Banking Information
           </Typography>
           <Grid container spacing={3}>
-            <Grid item xs={12} md={4}>
+            <Grid size={{ xs: 12, sm: 4 }}>
               <TextField
                 fullWidth
                 label="Bank Name"
                 value={settings.business.bankName}
               />
             </Grid>
-            <Grid item xs={12} md={4}>
+            <Grid size={{ xs: 12, sm: 4 }}>
               <TextField
                 fullWidth
                 label="Account Number"
                 value={settings.business.accountNumber}
               />
             </Grid>
-            <Grid item xs={12} md={4}>
+            <Grid size={{ xs: 12, sm: 4 }}>
               <TextField
                 fullWidth
                 label="Account Name"
@@ -477,7 +477,7 @@ const ShopSettings = () => {
             Shipping Settings
           </Typography>
           <Grid container spacing={3}>
-            <Grid item xs={12} md={6}>
+            <Grid size={{ xs: 12, sm: 6 }}>
               <TextField
                 fullWidth
                 label="Free Shipping Threshold"
@@ -488,7 +488,7 @@ const ShopSettings = () => {
                 }}
               />
             </Grid>
-            <Grid item xs={12} md={6}>
+            <Grid size={{ xs: 12, sm: 6 }}>
               <TextField
                 fullWidth
                 label="Default Shipping Fee"
@@ -499,7 +499,7 @@ const ShopSettings = () => {
                 }}
               />
             </Grid>
-            <Grid item xs={12}>
+            <Grid size={12}>
               <TextField
                 fullWidth
                 label="Processing Time"
@@ -694,7 +694,7 @@ const ShopSettings = () => {
 
       <Grid container spacing={3}>
         {/* Sidebar */}
-        <Grid item xs={12} md={3}>
+        <Grid size={{ xs: 12, md: 3 }}>
           <Paper
             elevation={0}
             sx={{
@@ -707,7 +707,6 @@ const ShopSettings = () => {
               {tabs.map((tab) => (
                 <ListItem
                   key={tab.id}
-                  button
                   onClick={() => handleTabChange(tab.id)}
                   sx={{
                     py: 2,
@@ -740,7 +739,7 @@ const ShopSettings = () => {
         </Grid>
 
         {/* Content */}
-        <Grid item xs={12} md={9}>
+        <Grid size={{ xs: 12, md: 9 }}>
           {renderActiveSection()}
         </Grid>
       </Grid>

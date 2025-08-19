@@ -1,15 +1,10 @@
-import slugify from 'slugify';
 import { SortOrder } from 'mongoose';
 import { NextResponse } from 'next/server';
 
-import { auth } from '@/auth';
-
 import Product from '@/models/Product.model';
-import Shop from '@/models/Shop.model';
 import '@/models/Category.model';
 
 import { errorHandler } from '@/lib/errorHandler';
-import { createProductSchema } from '@/lib/schema/product';
 import dbConnect from '@/lib/mongodb';
 
 export const GET = errorHandler(async (request) => {
@@ -68,31 +63,4 @@ export const GET = errorHandler(async (request) => {
     .populate('shopId');
 
   return NextResponse.json(products);
-});
-
-export const POST = errorHandler(async (request) => {
-  await dbConnect();
-
-  const session = await auth();
-
-  if (!session)
-    return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
-
-  const body = await request.json();
-  const newProduct = createProductSchema.parse(body);
-
-  const shop = await Shop.findById(newProduct.shopId);
-  if (!shop)
-    return NextResponse.json({ message: 'Shop not found' }, { status: 400 });
-
-  if (session.user._id !== shop.ownerId)
-    return NextResponse.json(
-      { message: 'Insufficient Permission' },
-      { status: 403 },
-    );
-
-  const product = new Product(newProduct);
-  product.slug = slugify(product.name);
-  await product.save();
-  return NextResponse.json(product, { status: 201 });
 });

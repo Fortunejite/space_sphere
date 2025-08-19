@@ -2,7 +2,9 @@ import { NextResponse } from 'next/server';
 
 import { requireAuth } from '@/lib/apiAuth';
 import Order from '@/models/Order.model';
-
+import '@/models/Shop.model';
+import '@/models/Product.model';
+import '@/models/User.model';
 import dbConnect from '@/lib/mongodb';
 import { errorHandler } from '@/lib/errorHandler';
 import { updateShopStats } from '@/models/ShopStats.model';

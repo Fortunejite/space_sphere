@@ -1,9 +1,10 @@
 'use client';
 
-import { ChangeEvent, FormEvent, useCallback, useState } from 'react';
+import { ChangeEvent, FormEvent, Suspense, useCallback, useState } from 'react';
 
 import {
   Button,
+  CircularProgress,
   Grid,
   Link,
   Stack,
@@ -149,4 +150,10 @@ const LoginPage = () => {
   );
 };
 
-export default LoginPage;
+const LoginSuspense = () => (
+  <Suspense fallback={<><CircularProgress /></>}>
+    <LoginPage />
+  </Suspense>
+)
+
+export default LoginSuspense;

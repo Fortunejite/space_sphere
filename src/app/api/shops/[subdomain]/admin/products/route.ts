@@ -2,6 +2,7 @@ import slugify from 'slugify';
 import { NextResponse } from 'next/server';
 import Product from '@/models/Product.model';
 import '@/models/Category.model';
+import '@/models/User.model';
 
 import { errorHandler } from '@/lib/errorHandler';
 import { createProductSchema } from '@/lib/schema/product';

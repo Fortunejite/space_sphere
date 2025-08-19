@@ -209,12 +209,12 @@ const OrdersManagement = () => {
 
   const handleViewOrder = () => {
     const order = orders.find(o => o.id === selectedOrder);
-    setOrderDetails(order);
+    setOrderDetails(order!);
     setViewDialogOpen(true);
     handleMenuClose();
   };
 
-  const getStatusColor = (status: string) => {
+  const getStatusColor = (status: string = 'processing') => {
     switch (status) {
       case 'completed': return 'success';
       case 'processing': return 'info';
@@ -225,7 +225,7 @@ const OrdersManagement = () => {
     }
   };
 
-  const getStatusIcon = (status: string) => {
+  const getStatusIcon = (status: string = 'processing') => {
     switch (status) {
       case 'completed': return <CheckCircleOutlined fontSize="small" />;
       case 'processing': return <PendingOutlined fontSize="small" />;
