@@ -47,9 +47,7 @@ import {
   CheckCircleOutlined,
   CancelOutlined,
   PendingOutlined,
-  DownloadOutlined,
   RefreshOutlined,
-  AddOutlined,
   PrintOutlined,
   EmailOutlined,
   PersonOutlined,
@@ -57,93 +55,105 @@ import {
   CalendarTodayOutlined,
   AttachMoneyOutlined
 } from '@mui/icons-material';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
+import { useAppSelector } from '@/hooks/redux.hook';
+import { formatNumber } from '@/lib/utils';
+import { formatCurrency } from '@/lib/currency';
+import axios from 'axios';
+import { OrderWithCartItems } from '@/types/order';
 
 // Mock data
-const orders = [
-  {
-    id: 'ORD-001',
-    customer: {
-      name: 'John Doe',
-      email: 'john@example.com',
-      avatar: '/placeholder.png'
-    },
-    date: '2024-01-15',
-    status: 'completed',
-    total: 125000,
-    items: 3,
-    paymentMethod: 'Card',
-    shippingAddress: '123 Main St, Lagos, Nigeria'
-  },
-  {
-    id: 'ORD-002',
-    customer: {
-      name: 'Jane Smith',
-      email: 'jane@example.com',
-      avatar: '/placeholder.png'
-    },
-    date: '2024-01-14',
-    status: 'processing',
-    total: 85000,
-    items: 2,
-    paymentMethod: 'Transfer',
-    shippingAddress: '456 Oak Ave, Abuja, Nigeria'
-  },
-  {
-    id: 'ORD-003',
-    customer: {
-      name: 'Mike Johnson',
-      email: 'mike@example.com',
-      avatar: '/placeholder.png'
-    },
-    date: '2024-01-13',
-    status: 'pending',
-    total: 67000,
-    items: 1,
-    paymentMethod: 'Card',
-    shippingAddress: '789 Pine St, Port Harcourt, Nigeria'
-  },
-  {
-    id: 'ORD-004',
-    customer: {
-      name: 'Sarah Wilson',
-      email: 'sarah@example.com',
-      avatar: '/placeholder.png'
-    },
-    date: '2024-01-12',
-    status: 'shipped',
-    total: 92000,
-    items: 4,
-    paymentMethod: 'Transfer',
-    shippingAddress: '321 Elm St, Kano, Nigeria'
-  },
-  {
-    id: 'ORD-005',
-    customer: {
-      name: 'David Brown',
-      email: 'david@example.com',
-      avatar: '/placeholder.png'
-    },
-    date: '2024-01-11',
-    status: 'cancelled',
-    total: 45000,
-    items: 2,
-    paymentMethod: 'Card',
-    shippingAddress: '654 Maple Ave, Ibadan, Nigeria'
-  }
-];
+// const orders = [
+//   {
+//     id: 'ORD-001',
+//     customer: {
+//       name: 'John Doe',
+//       email: 'john@example.com',
+//       avatar: '/placeholder.png'
+//     },
+//     date: '2024-01-15',
+//     status: 'delivered',
+//     total: 125000,
+//     items: 3,
+//     paymentMethod: 'Card',
+//     shippingAddress: '123 Main St, Lagos, Nigeria'
+//   },
+//   {
+//     id: 'ORD-002',
+//     customer: {
+//       name: 'Jane Smith',
+//       email: 'jane@example.com',
+//       avatar: '/placeholder.png'
+//     },
+//     date: '2024-01-14',
+//     status: 'pending',
+//     total: 85000,
+//     items: 2,
+//     paymentMethod: 'Transfer',
+//     shippingAddress: '456 Oak Ave, Abuja, Nigeria'
+//   },
+//   {
+//     id: 'ORD-003',
+//     customer: {
+//       name: 'Mike Johnson',
+//       email: 'mike@example.com',
+//       avatar: '/placeholder.png'
+//     },
+//     date: '2024-01-13',
+//     status: 'pending',
+//     total: 67000,
+//     items: 1,
+//     paymentMethod: 'Card',
+//     shippingAddress: '789 Pine St, Port Harcourt, Nigeria'
+//   },
+//   {
+//     id: 'ORD-004',
+//     customer: {
+//       name: 'Sarah Wilson',
+//       email: 'sarah@example.com',
+//       avatar: '/placeholder.png'
+//     },
+//     date: '2024-01-12',
+//     status: 'shipped',
+//     total: 92000,
+//     items: 4,
+//     paymentMethod: 'Transfer',
+//     shippingAddress: '321 Elm St, Kano, Nigeria'
+//   },
+//   {
+//     id: 'ORD-005',
+//     customer: {
+//       name: 'David Brown',
+//       email: 'david@example.com',
+//       avatar: '/placeholder.png'
+//     },
+//     date: '2024-01-11',
+//     status: 'cancelled',
+//     total: 45000,
+//     items: 2,
+//     paymentMethod: 'Card',
+//     shippingAddress: '654 Maple Ave, Ibadan, Nigeria'
+//   }
+// ];
 
-const statusTabs = [
-  { label: 'All Orders', value: 'all', count: 156 },
-  { label: 'Pending', value: 'pending', count: 23 },
-  { label: 'Processing', value: 'processing', count: 45 },
-  { label: 'Shipped', value: 'shipped', count: 67 },
-  { label: 'Completed', value: 'completed', count: 18 },
-  { label: 'Cancelled', value: 'cancelled', count: 3 }
-];
 
 const OrdersManagement = () => {
   const theme = useTheme();
+  const { shop } = useAppSelector((state) => state.shop);
+  const { stats: shopStats } = shop!
+  const todayKey = new Date().toISOString().slice(0, 10);
+  const statusTabs = [
+    { label: 'All Orders', value: 'all', count: shopStats?.totalOrders || 0 },
+    { label: 'Pending', value: 'pending', count: shopStats?.pendingOrders || 0 },
+    { label: 'Shipped', value: 'shipped', count: shopStats?.shippedOrders || 0 },
+    { label: 'Delivered', value: 'delivered', count: shopStats?.deliveredOrders || 0 },
+    { label: 'Cancelled', value: 'cancelled', count: shopStats?.cancelledOrders || 0 }
+  ];
+
+  console.log('Shop Stats:', shopStats);
+
+  // State management
+  const [orders, setOrders] = useState<OrderWithCartItems[]>([]);
   const [selectedTab, setSelectedTab] = useState('all');
   const [searchTerm, setSearchTerm] = useState('');
   const [page, setPage] = useState(0);
@@ -152,7 +162,31 @@ const OrdersManagement = () => {
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const [selectedOrder, setSelectedOrder] = useState<string | null>(null);
   const [viewDialogOpen, setViewDialogOpen] = useState(false);
-  const [orderDetails, setOrderDetails] = useState<typeof orders[0] | null>(null);
+  const [orderDetails, setOrderDetails] = useState<OrderWithCartItems | null>(null);
+
+  useEffect(() => {
+    // Reset pagination when tab changes
+    setPage(1);
+  }, [selectedTab]);
+
+  useEffect(() => {
+    const fetchProducts = async () => {
+      // Fetch products from API or database
+      const res = await axios.get(`/api/shops/${shop?.subdomain}/orders`, {
+        params: {
+          page,
+          limit: rowsPerPage,
+          status: selectedTab === 'all' ? undefined : selectedTab,
+          search: searchTerm
+        }
+      });
+      console.log('Fetched Orders:', res.data.orders);
+
+      setOrders(res.data.orders);
+    };
+
+    fetchProducts();
+  }, [page, rowsPerPage]);
 
   const handleTabChange = (event: React.SyntheticEvent, newValue: string) => {
     setSelectedTab(newValue);
@@ -208,16 +242,16 @@ const OrdersManagement = () => {
   };
 
   const handleViewOrder = () => {
-    const order = orders.find(o => o.id === selectedOrder);
+    const order = orders.find(o => o._id.toString() === selectedOrder);
     setOrderDetails(order!);
     setViewDialogOpen(true);
     handleMenuClose();
   };
 
-  const getStatusColor = (status: string = 'processing') => {
+  const getStatusColor = (status: string = 'pending') => {
     switch (status) {
-      case 'completed': return 'success';
-      case 'processing': return 'info';
+      case 'delivered': return 'success';
+      case 'pending': return 'info';
       case 'pending': return 'warning';
       case 'shipped': return 'primary';
       case 'cancelled': return 'error';
@@ -225,10 +259,10 @@ const OrdersManagement = () => {
     }
   };
 
-  const getStatusIcon = (status: string = 'processing') => {
+  const getStatusIcon = (status: string = 'pending') => {
     switch (status) {
-      case 'completed': return <CheckCircleOutlined fontSize="small" />;
-      case 'processing': return <PendingOutlined fontSize="small" />;
+      case 'delivered': return <CheckCircleOutlined fontSize="small" />;
+      case 'pending': return <PendingOutlined fontSize="small" />;
       case 'pending': return <PendingOutlined fontSize="small" />;
       case 'shipped': return <LocalShippingOutlined fontSize="small" />;
       case 'cancelled': return <CancelOutlined fontSize="small" />;
@@ -256,22 +290,6 @@ const OrdersManagement = () => {
             Manage and track all your customer orders
           </Typography>
         </Box>
-        <Stack direction="row" spacing={2}>
-          <Button
-            variant="outlined"
-            startIcon={<DownloadOutlined />}
-            sx={{ borderRadius: 2 }}
-          >
-            Export
-          </Button>
-          <Button
-            variant="contained"
-            startIcon={<AddOutlined />}
-            sx={{ borderRadius: 2 }}
-          >
-            Add Order
-          </Button>
-        </Stack>
       </Stack>
 
       {/* Stats Cards */}
@@ -291,7 +309,7 @@ const OrdersManagement = () => {
                 </Avatar>
                 <Box>
                   <Typography variant="h5" fontWeight={700}>
-                    156
+                    {formatNumber(shopStats?.totalOrders || 0)}
                   </Typography>
                   <Typography variant="body2" color="text.secondary">
                     Total Orders
@@ -316,7 +334,7 @@ const OrdersManagement = () => {
                 </Avatar>
                 <Box>
                   <Typography variant="h5" fontWeight={700}>
-                    ₦2.4M
+                    {formatCurrency(shopStats?.totalRevenueCents || 0, shop?.currency)}
                   </Typography>
                   <Typography variant="body2" color="text.secondary">
                     Total Revenue
@@ -341,7 +359,7 @@ const OrdersManagement = () => {
                 </Avatar>
                 <Box>
                   <Typography variant="h5" fontWeight={700}>
-                    23
+                    {formatNumber(shopStats?.pendingOrders || 0)}
                   </Typography>
                   <Typography variant="body2" color="text.secondary">
                     Pending Orders
@@ -366,7 +384,7 @@ const OrdersManagement = () => {
                 </Avatar>
                 <Box>
                   <Typography variant="h5" fontWeight={700}>
-                    18
+                    {formatNumber(shopStats?.daily?.get(`${todayKey}.orders`)?.orders || 0)}
                   </Typography>
                   <Typography variant="body2" color="text.secondary">
                     Today&apos;s Orders

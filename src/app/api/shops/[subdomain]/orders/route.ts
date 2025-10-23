@@ -22,12 +22,15 @@ export const GET = errorHandler(async (request, { params }) => {
   await dbConnect();
   const { subdomain } = await params;
   const { searchParams } = new URL(request.url);
-  const fetchOrderStatus = searchParams.get('status') === 'true';
+  const fetchOrderStats = searchParams.get('status') === 'true';
 
   // Pagination
   const page = Number(searchParams.get('page')) || 1;
   const limit = Number(searchParams.get('limit')) || 10;
   const skip = (page - 1) * limit;
+
+  const status = searchParams.get('status') || 'all';
+  const search = searchParams.get('search') || '';
 
   if (!subdomain) {
     throw Object.assign(new Error('Shop Subdomain param is required'), {
@@ -37,7 +40,12 @@ export const GET = errorHandler(async (request, { params }) => {
   const shop = await getShopBySubdomain(subdomain);
   const user = await requireAuth();
 
-  const orders = await Order.find({ shop: shop._id, user: user._id })
+  const orders = await Order.find({
+    shop: shop._id,
+    user: user._id,
+    ...(status !== 'all' ? { status } : {}),
+    ...(search ? { trackingId: { $regex: search, $options: 'i' } } : {}),
+  })
     .skip(skip)
     .limit(limit)
     .sort({ createdAt: -1 })
@@ -48,7 +56,7 @@ export const GET = errorHandler(async (request, { params }) => {
     user: user._id,
   });
 
-  if (!fetchOrderStatus) {
+  if (!fetchOrderStats) {
     return NextResponse.json({
       success: true,
       data: orders,
@@ -77,7 +85,7 @@ export const GET = errorHandler(async (request, { params }) => {
 
   return NextResponse.json({
     success: true,
-    data: orders,
+    orders,
     total: totalOrders,
     stats,
   });
@@ -118,7 +126,7 @@ export const POST = errorHandler(async (request, { params }) => {
     price: item.productId.price,
   }));
 
-  const totalAmount = Number(calculateCartTotal(shopCart.items).toFixed(0))
+  const totalAmount = Number(calculateCartTotal(shopCart.items).toFixed(0));
 
   const payload = {
     shop: shop._id,
